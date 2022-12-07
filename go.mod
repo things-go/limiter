@@ -6,6 +6,7 @@ require (
 	github.com/alicebob/miniredis/v2 v2.23.1
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/stretchr/testify v1.8.1
+	golang.org/x/time v0.3.0
 )
 
 require (
