@@ -1,6 +1,7 @@
 package v8
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"sync/atomic"
@@ -52,7 +53,7 @@ func TestSendCode_RedisUnavailable(t *testing.T) {
 	l := limit_verified.NewLimitVerified(new(TestProvider), NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})))
 	mr.Close()
 
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	assert.NotNil(t, err)
 }
 
@@ -67,6 +68,7 @@ func TestSendCode_Success(t *testing.T) {
 		limit_verified.WithKeyExpires(time.Hour),
 	)
 	err = l.SendCode(
+		context.Background(),
 		limit_verified.CodeParam{Target: target, Code: code},
 		limit_verified.WithAvailWindowSecond(3),
 	)
@@ -83,7 +85,7 @@ func TestSendCode_Err_Failure(t *testing.T) {
 		limit_verified.WithKeyPrefix("verification:err"),
 		limit_verified.WithKeyExpires(time.Hour),
 	)
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Error(t, err)
 }
 
@@ -99,11 +101,11 @@ func TestSendCode_MaxSendPerDay(t *testing.T) {
 		limit_verified.WithCodeResendIntervalSecond(1),
 	)
 
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.NoError(t, err)
 
 	time.Sleep(time.Second + time.Millisecond*10)
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
@@ -126,7 +128,7 @@ func TestSendCode_Concurrency_MaxSendPerDay(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			err := l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+			err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 			if err != nil {
 				require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 				atomic.AddUint32(&failed, 1)
@@ -150,9 +152,9 @@ func TestSendCode_ResendTooFrequently(t *testing.T) {
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
 	require.NoError(t, err)
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
 	require.ErrorIs(t, err, limit_verified.ErrResendTooFrequently)
 }
 
@@ -175,7 +177,7 @@ func TestSendCode_Concurrency_ResendTooFrequently(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			err := l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+			err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 			if err != nil {
 				require.ErrorIs(t, err, limit_verified.ErrResendTooFrequently)
 				atomic.AddUint32(&failed, 1)
@@ -199,10 +201,10 @@ func TestVerifyCode_Success(t *testing.T) {
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Nil(t, err)
 
-	err = l.VerifyCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	assert.NoError(t, err)
 }
 
@@ -215,7 +217,7 @@ func TestVerifyCode_CodeRequired(t *testing.T) {
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 
-	err = l.VerifyCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
 }
 
@@ -225,15 +227,16 @@ func TestVerifyCode_CodeRequired(t *testing.T) {
 // 	require.Nil(t, err)
 // 	defer mr.Close()
 //
-// 	l := NewLimitVerified(new(TestProvider),
+// 	l := limit_verified.NewLimitVerified(
+// 		new(TestProvider),
 // 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 // 	)
-// 	err = l.SendCode(CodeParam{Target: target, Code: code}, WithAvailWindowSecond(1))
+// 	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithAvailWindowSecond(1))
 // 	require.Nil(t, err)
 //
 // 	time.Sleep(time.Second * 3)
-// 	err = l.VerifyCode(CodeParam{Target: target, Code: code})
-// 	assert.ErrorIs(t, err, ErrCodeRequiredOrExpired)
+// 	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+// 	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
 // }
 
 func TestVerifyCode_CodeMaxError(t *testing.T) {
@@ -244,14 +247,14 @@ func TestVerifyCode_CodeMaxError(t *testing.T) {
 	l := limit_verified.NewLimitVerified(new(TestProvider),
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithMaxErrorQuota(6))
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithMaxErrorQuota(6))
 	require.Nil(t, err)
 
 	for i := 0; i < 6; i++ {
-		err = l.VerifyCode(limit_verified.CodeParam{Target: target, Code: badCode})
+		err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: badCode})
 		assert.ErrorIs(t, err, limit_verified.ErrCodeVerification)
 	}
-	err = l.VerifyCode(limit_verified.CodeParam{Target: target, Code: badCode})
+	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: badCode})
 	assert.ErrorIs(t, err, limit_verified.ErrCodeMaxErrorQuota)
 }
 
@@ -269,7 +272,7 @@ func TestVerifyCode_Concurrency_CodeMaxError(t *testing.T) {
 		limit_verified.WithCodeAvailWindowSecond(180),
 	)
 
-	err = l.SendCode(limit_verified.CodeParam{Target: target, Code: code})
+	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Nil(t, err)
 
 	wg := &sync.WaitGroup{}
@@ -278,7 +281,7 @@ func TestVerifyCode_Concurrency_CodeMaxError(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			err := l.VerifyCode(limit_verified.CodeParam{Target: target, Code: badCode})
+			err := l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: badCode})
 			if err != nil {
 				if errors.Is(err, limit_verified.ErrCodeMaxErrorQuota) {
 					atomic.AddUint32(&failedMaxError, 1)
@@ -304,10 +307,10 @@ func Test_INCR_MaxSendPerDay(t *testing.T) {
 		limit_verified.WithMaxSendPerDay(10),
 	)
 	for i := 0; i < 10; i++ {
-		err = l.Incr(target)
+		err = l.Incr(context.Background(), target)
 		require.Nil(t, err)
 	}
-	err = l.Incr(target)
+	err = l.Incr(context.Background(), target)
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
@@ -319,9 +322,9 @@ func Test_INCR_DECR(t *testing.T) {
 	l := limit_verified.NewLimitVerified(new(TestProvider),
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
-	err = l.Incr(target)
+	err = l.Incr(context.Background(), target)
 	require.Nil(t, err)
 
-	err = l.Decr(target)
+	err = l.Decr(context.Background(), target)
 	require.Nil(t, err)
 }

@@ -54,7 +54,7 @@ func NewVerifiedCaptcha(p CaptchaProvider, store Storage, opts ...Option) *Captc
 func (v *Captcha) Name(kind string) string { return v.p.AcquireDriver(kind).Name() }
 
 // Generate generate id, question.
-func (v *Captcha) Generate(kind string, opts ...GenerateOption) (id, question string, err error) {
+func (v *Captcha) Generate(ctx context.Context, kind string, opts ...GenerateOption) (id, question string, err error) {
 	genOpt := generateOption{
 		keyExpires:  v.keyExpires,
 		maxErrQuota: v.maxErrQuota,
@@ -67,7 +67,7 @@ func (v *Captcha) Generate(kind string, opts ...GenerateOption) (id, question st
 	if err != nil {
 		return "", "", err
 	}
-	err = v.store.Store(context.Background(), &StoreArgs{
+	err = v.store.Store(ctx, &StoreArgs{
 		v.disableOneTime,
 		v.keyPrefix + kind + ":" + q.Id,
 		genOpt.keyExpires,
@@ -81,8 +81,8 @@ func (v *Captcha) Generate(kind string, opts ...GenerateOption) (id, question st
 }
 
 // Verify the answer.
-func (v *Captcha) Verify(kind, id, answer string) bool {
-	return v.store.Verify(context.Background(),
+func (v *Captcha) Verify(ctx context.Context, kind, id, answer string) bool {
+	return v.store.Verify(ctx,
 		&VerifyArgs{
 			v.disableOneTime,
 			v.keyPrefix + kind + ":" + id,

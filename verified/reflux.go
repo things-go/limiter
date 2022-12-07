@@ -41,7 +41,7 @@ func NewVerifiedReflux(p RefluxProvider, s Storage, opts ...Option) *Reflux {
 func (v *Reflux) Name() string { return v.p.Name() }
 
 // Generate generate uniqueId. use GenerateOption overwrite default key expires
-func (v *Reflux) Generate(kind, key string, opts ...GenerateOption) (string, error) {
+func (v *Reflux) Generate(ctx context.Context, kind, key string, opts ...GenerateOption) (string, error) {
 	genOpt := generateOption{
 		keyExpires:  v.keyExpires,
 		maxErrQuota: v.maxErrQuota,
@@ -50,7 +50,7 @@ func (v *Reflux) Generate(kind, key string, opts ...GenerateOption) (string, err
 		f(&genOpt)
 	}
 	answer := v.p.GenerateUniqueId()
-	err := v.store.Store(context.Background(), &StoreArgs{
+	err := v.store.Store(ctx, &StoreArgs{
 		v.disableOneTime,
 		v.keyPrefix + kind + ":" + key,
 		genOpt.keyExpires,
@@ -65,8 +65,8 @@ func (v *Reflux) Generate(kind, key string, opts ...GenerateOption) (string, err
 
 // Verify the uniqueId.
 // shortcut Match(id, answer, true)
-func (v *Reflux) Verify(kind, key, answer string) bool {
-	return v.store.Verify(context.Background(),
+func (v *Reflux) Verify(ctx context.Context, kind, key, answer string) bool {
+	return v.store.Verify(ctx,
 		&VerifyArgs{
 			v.disableOneTime,
 			v.keyPrefix + kind + ":" + key,

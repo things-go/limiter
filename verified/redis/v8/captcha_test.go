@@ -1,6 +1,7 @@
 package v8
 
 import (
+	"context"
 	"math/bits"
 	"math/rand"
 	"testing"
@@ -89,7 +90,7 @@ func TestCaptcha_Unsupported_Driver(t *testing.T) {
 	)
 	mr.Close()
 
-	_, _, err = l.Generate(unsupportedKind)
+	_, _, err = l.Generate(context.Background(), unsupportedKind)
 	assert.Error(t, err)
 }
 
@@ -103,7 +104,7 @@ func TestCaptcha_RedisUnavailable(t *testing.T) {
 	)
 	mr.Close()
 
-	_, _, err = l.Generate(defaultKind)
+	_, _, err = l.Generate(context.Background(), defaultKind)
 	assert.Error(t, err)
 }
 
@@ -120,13 +121,13 @@ func TestCaptcha_OneTime(t *testing.T) {
 		verified.WithKeyExpires(time.Minute*3),
 	)
 
-	id, _, err := l.Generate(defaultKind, verified.WithGenerateKeyExpires(time.Minute*5))
+	id, _, err := l.Generate(context.Background(), defaultKind, verified.WithGenerateKeyExpires(time.Minute*5))
 	assert.NoError(t, err)
 
-	b := l.Verify(defaultKind, id, answer)
+	b := l.Verify(context.Background(), defaultKind, id, answer)
 	require.True(t, b)
 
-	b = l.Verify(defaultKind, id, answer)
+	b = l.Verify(context.Background(), defaultKind, id, answer)
 	require.False(t, b)
 }
 
@@ -144,16 +145,16 @@ func TestCaptcha_In_Quota(t *testing.T) {
 		verified.WithMaxErrQuota(3),
 	)
 
-	id, _, err := l.Generate(defaultKind,
+	id, _, err := l.Generate(context.Background(), defaultKind,
 		verified.WithGenerateKeyExpires(time.Minute*5),
 	)
 	assert.NoError(t, err)
 
-	b := l.Verify(defaultKind, id, badAnswer)
+	b := l.Verify(context.Background(), defaultKind, id, badAnswer)
 	require.False(t, b)
-	b = l.Verify(defaultKind, id, badAnswer)
+	b = l.Verify(context.Background(), defaultKind, id, badAnswer)
 	require.False(t, b)
-	b = l.Verify(defaultKind, id, answer)
+	b = l.Verify(context.Background(), defaultKind, id, answer)
 	require.True(t, b)
 }
 
@@ -171,17 +172,17 @@ func TestCaptcha_Over_Quota(t *testing.T) {
 		verified.WithMaxErrQuota(3),
 	)
 
-	id, _, err := l.Generate(defaultKind,
+	id, _, err := l.Generate(context.Background(), defaultKind,
 		verified.WithGenerateKeyExpires(time.Minute*5),
 		verified.WithGenerateMaxErrQuota(6),
 	)
 	assert.NoError(t, err)
 
 	for i := 0; i < 6; i++ {
-		b := l.Verify(defaultKind, id, badAnswer)
+		b := l.Verify(context.Background(), defaultKind, id, badAnswer)
 		require.False(t, b)
 	}
-	b := l.Verify(defaultKind, id, answer)
+	b := l.Verify(context.Background(), defaultKind, id, answer)
 	require.False(t, b)
 }
 
@@ -197,11 +198,11 @@ func TestCaptcha_Over_Quota(t *testing.T) {
 //         NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 //         // NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
 //     )
-//     id, _, err := l.Generate(defaultKind, verified.WithGenerateKeyExpires(time.Second*1))
+//     id, _, err := l.Generate(context.Background(),defaultKind, verified.WithGenerateKeyExpires(time.Second*1))
 //     assert.NoError(t, err)
 //
 //     time.Sleep(time.Second * 2)
 //
-//     b := l.Verify(defaultKind, id, "2")
+//     b := l.Verify(context.Background(),defaultKind, id, "2")
 //     require.False(t, b)
 // }

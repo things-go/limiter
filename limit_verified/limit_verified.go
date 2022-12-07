@@ -66,11 +66,11 @@ func NewLimitVerified(p LimitVerifiedProvider, store Storage, opts ...Option) *L
 func (v *LimitVerified) Name() string { return v.p.Name() }
 
 // SendCode send code and store.
-func (v *LimitVerified) SendCode(c CodeParam, opts ...CodeParamOption) error {
+func (v *LimitVerified) SendCode(ctx context.Context, c CodeParam, opts ...CodeParamOption) error {
 	c.takeCodeParamOption(v, opts...)
 
 	nowSecond := strconv.FormatInt(time.Now().Unix(), 10)
-	err := v.store.Store(context.Background(), &StoreArgs{
+	err := v.store.Store(ctx, &StoreArgs{
 		KeyPrefix:                v.keyPrefix,
 		Kind:                     c.Kind,
 		Target:                   c.Target,
@@ -103,9 +103,9 @@ func (v *LimitVerified) SendCode(c CodeParam, opts ...CodeParamOption) error {
 }
 
 // VerifyCode verify code from cache.
-func (v *LimitVerified) VerifyCode(c CodeParam) error {
+func (v *LimitVerified) VerifyCode(ctx context.Context, c CodeParam) error {
 	c.takeCodeParamOption(v)
-	return v.store.Verify(context.Background(), &VerifyArgs{
+	return v.store.Verify(ctx, &VerifyArgs{
 		KeyPrefix: v.keyPrefix,
 		Kind:      c.Kind,
 		Target:    c.Target,
@@ -115,8 +115,8 @@ func (v *LimitVerified) VerifyCode(c CodeParam) error {
 }
 
 // Incr send cnt.
-func (v *LimitVerified) Incr(target string) error {
-	return v.store.Incr(context.Background(), &IncrArgs{
+func (v *LimitVerified) Incr(ctx context.Context, target string) error {
+	return v.store.Incr(ctx, &IncrArgs{
 		KeyPrefix:     v.keyPrefix,
 		Target:        target,
 		KeyExpires:    v.keyExpires,
@@ -125,8 +125,8 @@ func (v *LimitVerified) Incr(target string) error {
 }
 
 // Decr send cnt.
-func (v *LimitVerified) Decr(target string) error {
-	return v.store.Decr(context.Background(), &DecrArgs{
+func (v *LimitVerified) Decr(ctx context.Context, target string) error {
+	return v.store.Decr(ctx, &DecrArgs{
 		KeyPrefix: v.keyPrefix,
 		Target:    target,
 	})
