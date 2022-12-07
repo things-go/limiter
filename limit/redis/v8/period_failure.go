@@ -8,7 +8,7 @@ import (
 	"github.com/go-redis/redis/v8"
 
 	"github.com/things-go/limiter/limit"
-	redis2 "github.com/things-go/limiter/limit/redis"
+	redisScript "github.com/things-go/limiter/limit/redis"
 )
 
 // A PeriodFailureLimit is used to limit requests when failure during a period of time.
@@ -59,7 +59,7 @@ func (p *PeriodFailureLimit) Check(ctx context.Context, key string, success bool
 		s = "1"
 	}
 	result, err := p.store.Eval(ctx,
-		redis2.PeriodFailureLimitFixedScript,
+		redisScript.PeriodFailureLimitFixedScript,
 		[]string{p.formatKey(key)},
 		[]string{
 			strconv.Itoa(p.quota),
@@ -75,11 +75,11 @@ func (p *PeriodFailureLimit) Check(ctx context.Context, key string, success bool
 		return limit.PeriodFailureLimitStsUnknown, limit.ErrUnknownCode
 	}
 	switch code {
-	case redis2.InnerPeriodFailureLimitCodeSuccess:
+	case redisScript.InnerPeriodFailureLimitCodeSuccess:
 		return limit.PeriodFailureLimitStsSuccess, nil
-	case redis2.InnerPeriodFailureLimitCodeInQuota:
+	case redisScript.InnerPeriodFailureLimitCodeInQuota:
 		return limit.PeriodFailureLimitStsInQuota, nil
-	case redis2.InnerPeriodFailureLimitCodeOverQuota:
+	case redisScript.InnerPeriodFailureLimitCodeOverQuota:
 		return limit.PeriodFailureLimitStsOverQuota, nil
 	default:
 		return limit.PeriodFailureLimitStsUnknown, limit.ErrUnknownCode
@@ -89,7 +89,7 @@ func (p *PeriodFailureLimit) Check(ctx context.Context, key string, success bool
 // SetQuotaFull set a permit over quota.
 func (p *PeriodFailureLimit) SetQuotaFull(ctx context.Context, key string) error {
 	err := p.store.Eval(ctx,
-		redis2.PeriodFailureLimitFixedSetQuotaFullScript,
+		redisScript.PeriodFailureLimitFixedSetQuotaFullScript,
 		[]string{p.formatKey(key)},
 		[]string{
 			strconv.Itoa(p.quota),

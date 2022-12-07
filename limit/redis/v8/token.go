@@ -12,7 +12,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	xrate "golang.org/x/time/rate"
 
-	redis2 "github.com/things-go/limiter/limit/redis"
+	redisScript "github.com/things-go/limiter/limit/redis"
 )
 
 // TokenLimit controls how frequently events are allowed to happen with in one second.
@@ -35,8 +35,8 @@ func NewTokenLimit(rate, burst int, key string, store *redis.Client) *TokenLimit
 		rate:          rate,
 		burst:         burst,
 		store:         store,
-		tokenKey:      fmt.Sprintf(redis2.TokenLimitTokenFormat, key),
-		timestampKey:  fmt.Sprintf(redis2.TokenLimitTimestampFormat, key),
+		tokenKey:      fmt.Sprintf(redisScript.TokenLimitTokenFormat, key),
+		timestampKey:  fmt.Sprintf(redisScript.TokenLimitTimestampFormat, key),
 		isRedisAlive:  1,
 		rescueLimiter: xrate.NewLimiter(xrate.Every(time.Second/time.Duration(rate)), burst),
 	}
@@ -59,7 +59,7 @@ func (t *TokenLimit) reserveN(now time.Time, n int) bool {
 		return t.rescueLimiter.AllowN(now, n)
 	}
 
-	resp, err := t.store.Eval(context.Background(), redis2.TokenLimitScript,
+	resp, err := t.store.Eval(context.Background(), redisScript.TokenLimitScript,
 		[]string{t.tokenKey, t.timestampKey},
 		[]string{
 			strconv.Itoa(t.rate),
@@ -105,7 +105,7 @@ func (t *TokenLimit) startMonitor() {
 }
 
 func (t *TokenLimit) waitForRedis() {
-	ticker := time.NewTicker(redis2.TokenLimitPingInterval)
+	ticker := time.NewTicker(redisScript.TokenLimitPingInterval)
 	defer func() {
 		ticker.Stop()
 		t.rescueLock.Lock()

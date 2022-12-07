@@ -9,7 +9,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 
-	redis2 "github.com/things-go/limiter/limit"
+	redisScript "github.com/things-go/limiter/limit"
 )
 
 const (
@@ -45,7 +45,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 	mr.Close()
 	val, err := l.Take(context.Background(), "first")
 	assert.Error(t, err)
-	assert.Equal(t, redis2.PeriodLimitStsUnknown, val)
+	assert.Equal(t, redisScript.PeriodLimitStsUnknown, val)
 }
 
 func testPeriodLimit(t *testing.T, opts ...PeriodLimitOption) {
@@ -63,13 +63,13 @@ func testPeriodLimit(t *testing.T, opts ...PeriodLimitOption) {
 		val, err := l.Take(context.Background(), "first")
 		assert.NoError(t, err)
 		switch val {
-		case redis2.PeriodLimitStsAllowed:
+		case redisScript.PeriodLimitStsAllowed:
 			allowed++
-		case redis2.PeriodLimitStsHitQuota:
+		case redisScript.PeriodLimitStsHitQuota:
 			hitQuota++
-		case redis2.PeriodLimitStsOverQuota:
+		case redisScript.PeriodLimitStsOverQuota:
 			overQuota++
-		case redis2.PeriodLimitStsUnknown:
+		case redisScript.PeriodLimitStsUnknown:
 			fallthrough
 		default:
 			t.Error("unknown status")
@@ -110,7 +110,7 @@ func TestPeriodLimit_SetQuotaFull(t *testing.T) {
 
 	val, err := l.Take(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.Equal(t, redis2.PeriodLimitStsOverQuota, val)
+	assert.Equal(t, redisScript.PeriodLimitStsOverQuota, val)
 }
 
 func TestPeriodLimit_Del(t *testing.T) {
