@@ -14,6 +14,7 @@ type StoreArgs struct {
 	Answer         string
 }
 
+// VerifyArgs verify arguments
 type VerifyArgs struct {
 	DisableOneTime bool
 	Key            string

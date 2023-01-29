@@ -13,15 +13,15 @@ import (
 
 // RedisStore verified captcha limit
 type RedisStore struct {
-	store *redis.Client // store client
+	store *redis.Client // store redis client
 }
 
-// NewRedisStore
+// NewRedisStore new redis store instance.
 func NewRedisStore(store *redis.Client) *RedisStore {
 	return &RedisStore{store}
 }
 
-// Generate generate id, question.
+// Store the arguments.
 func (v *RedisStore) Store(ctx context.Context, p *verified.StoreArgs) error {
 	if p.DisableOneTime {
 		return v.store.Eval(
@@ -40,7 +40,6 @@ func (v *RedisStore) Store(ctx context.Context, p *verified.StoreArgs) error {
 }
 
 // Verify the answer.
-// shortcut Match(id, answer, true)
 func (v *RedisStore) Verify(ctx context.Context, p *verified.VerifyArgs) bool {
 	if p.DisableOneTime {
 		result, err := v.store.Eval(

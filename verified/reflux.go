@@ -21,7 +21,7 @@ type Reflux struct {
 	maxErrQuota    int            // store 验证码验证最大错误次数限制, 默认: 1
 }
 
-// NewVerifiedReflux new instance for reflux
+// NewVerifiedReflux new reflux instance.
 func NewVerifiedReflux(p RefluxProvider, s Storage, opts ...Option) *Reflux {
 	v := &Reflux{
 		p,
@@ -63,8 +63,7 @@ func (v *Reflux) Generate(ctx context.Context, kind, key string, opts ...Generat
 	return answer, nil
 }
 
-// Verify the uniqueId.
-// shortcut Match(id, answer, true)
+// Verify the answer.
 func (v *Reflux) Verify(ctx context.Context, kind, key, answer string) bool {
 	return v.store.Verify(ctx,
 		&VerifyArgs{

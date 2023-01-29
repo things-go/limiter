@@ -34,7 +34,7 @@ type Captcha struct {
 	maxErrQuota    int             // store 验证码验证最大错误次数限制, 默认: 1
 }
 
-// NewVerifiedCaptcha
+// NewVerifiedCaptcha new captcha instance.
 func NewVerifiedCaptcha(p CaptchaProvider, store Storage, opts ...Option) *Captcha {
 	v := &Captcha{
 		p,
