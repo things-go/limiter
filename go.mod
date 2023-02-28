@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alicebob/miniredis/v2 v2.30.0
 	github.com/go-redis/redis/v8 v8.11.5
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	golang.org/x/time v0.3.0
 )
 
