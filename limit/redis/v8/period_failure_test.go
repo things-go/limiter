@@ -184,7 +184,7 @@ func TestPeriodFailureLimit_Del(t *testing.T) {
 	tt, err := l.TTL(context.Background(), "first")
 	assert.Nil(t, err)
 	assert.Equal(t, int(tt), -2)
-	
+
 	runValue, err := l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
 	assert.Equal(t, runValue.Exist, false)

@@ -78,7 +78,6 @@ func (p *PeriodLimit) Take(ctx context.Context, key string) (limit.PeriodLimitSt
 
 // SetQuotaFull set a permit over quota.
 func (p *PeriodLimit) SetQuotaFull(ctx context.Context, key string) error {
-
 	return p.store.Eval(ctx,
 		redisScript.PeriodLimitSetQuotaFullScript,
 		[]string{
