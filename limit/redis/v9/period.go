@@ -1,11 +1,11 @@
-package v8
+package v9
 
 import (
 	"context"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/things-go/limiter/limit"
 	redisScript "github.com/things-go/limiter/limit/redis"
@@ -78,6 +78,7 @@ func (p *PeriodLimit) Take(ctx context.Context, key string) (limit.PeriodLimitSt
 
 // SetQuotaFull set a permit over quota.
 func (p *PeriodLimit) SetQuotaFull(ctx context.Context, key string) error {
+
 	return p.store.Eval(ctx,
 		redisScript.PeriodLimitSetQuotaFullScript,
 		[]string{
@@ -97,14 +98,12 @@ func (p *PeriodLimit) Del(ctx context.Context, key string) error {
 
 // TTL get key ttl
 // if key not exist, time = -2.
-// if key exist, but not set expire time, t = -1
-// Deprecated: use GetRunValue instead
+// if key exist, but not set expire time, t = -1.
 func (p *PeriodLimit) TTL(ctx context.Context, key string) (time.Duration, error) {
 	return p.store.TTL(ctx, p.formatKey(key)).Result()
 }
 
 // GetInt get current count
-// Deprecated: use GetRunValue instead
 func (p *PeriodLimit) GetInt(ctx context.Context, key string) (int, bool, error) {
 	v, err := p.store.Get(ctx, p.formatKey(key)).Int()
 	if err != nil {

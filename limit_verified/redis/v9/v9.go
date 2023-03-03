@@ -1,11 +1,11 @@
-package v8
+package v9
 
 import (
 	"context"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/things-go/limiter/limit_verified"
 	redisScript "github.com/things-go/limiter/limit_verified/redis"

@@ -1,4 +1,4 @@
-package v8
+package v9
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/things-go/limiter/limit"
@@ -184,7 +184,7 @@ func TestPeriodFailureLimit_Del(t *testing.T) {
 	tt, err := l.TTL(context.Background(), "first")
 	assert.Nil(t, err)
 	assert.Equal(t, int(tt), -2)
-	
+
 	runValue, err := l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
 	assert.Equal(t, runValue.Exist, false)

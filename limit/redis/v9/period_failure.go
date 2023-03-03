@@ -1,11 +1,11 @@
-package v8
+package v9
 
 import (
 	"context"
 	"strconv"
 	"time"
 
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 
 	"github.com/things-go/limiter/limit"
 	redisScript "github.com/things-go/limiter/limit/redis"
@@ -107,7 +107,7 @@ func (p *PeriodFailureLimit) Del(ctx context.Context, key string) error {
 
 // TTL get key ttl
 // if key not exist, time = -2.
-// if key exist, but not set expire time, t = -1
+// if key exist, but not set expire time, t = -1.
 func (p *PeriodFailureLimit) TTL(ctx context.Context, key string) (time.Duration, error) {
 	return p.store.TTL(ctx, p.formatKey(key)).Result()
 }

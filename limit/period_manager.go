@@ -40,11 +40,16 @@ type PeriodLimitDriver interface {
 	// Del delete a permit
 	Del(ctx context.Context, key string) error
 	// TTL get key ttl
-	// if key not exist, time = -1.
-	// if key exist, but not set expire time, t = -2
+	// if key not exist, time = -2.
+	// if key exist, but not set expire time, t = -1.
 	TTL(ctx context.Context, key string) (time.Duration, error)
 	// GetInt get current count
 	GetInt(ctx context.Context, key string) (int, bool, error)
+	// GetRunValue get run value
+	// Exist: false if key not exist.
+	// Count: current count
+	// TTL: not set expire time, t = -1.
+	GetRunValue(ctx context.Context, key string) (*RunValue, error)
 }
 
 // PeriodLimitManager manage limit period
@@ -115,4 +120,7 @@ func (u UnsupportedPeriodLimitDriver) TTL(context.Context, string) (time.Duratio
 }
 func (u UnsupportedPeriodLimitDriver) GetInt(context.Context, string) (int, bool, error) {
 	return 0, false, ErrUnsupportedDriver
+}
+func (u UnsupportedPeriodLimitDriver) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
+	return nil, ErrUnsupportedDriver
 }
