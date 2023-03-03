@@ -1,6 +1,6 @@
 module github.com/things-go/limiter
 
-go 1.18
+go 1.19
 
 require (
 	github.com/alicebob/miniredis/v2 v2.30.0
