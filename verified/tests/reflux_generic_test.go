@@ -1,12 +1,10 @@
-package v8
+package tests
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -23,41 +21,29 @@ func (t TestVerifiedRefluxProvider) GenerateUniqueId() string {
 	return randString(6)
 }
 
-func TestReflux_Improve_Cover(t *testing.T) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-	l := verified.NewVerifiedCaptcha(
-		new(TestVerifiedCaptchaProvider),
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-	)
-	l.Name(defaultKind)
-}
-
-func TestReflux_RedisUnavailable(t *testing.T) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-
+func testReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		store,
 	)
-	mr.Close()
+	l.Name()
+}
+
+func testReflux_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
+	l := verified.NewVerifiedReflux(
+		new(TestVerifiedRefluxProvider),
+		store,
+	)
 
 	randKey := randString(6)
-	_, err = l.Generate(context.Background(), defaultKind, randKey)
+	_, err := l.Generate(context.Background(), defaultKind, randKey)
 	assert.Error(t, err)
 }
 
-func TestReflux_One_Time(t *testing.T) {
-	mr, err := miniredis.Run()
-	assert.NoError(t, err)
-
-	defer mr.Close()
-
+func testReflux_One_Time[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		store,
 		verified.WithKeyPrefix("verified:reflux:"),
 		verified.WithKeyExpires(time.Minute*3),
 	)
@@ -74,15 +60,10 @@ func TestReflux_One_Time(t *testing.T) {
 	require.False(t, b)
 }
 
-func TestReflux_In_Quota(t *testing.T) {
-	mr, err := miniredis.Run()
-	assert.NoError(t, err)
-
-	defer mr.Close()
-
+func testReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		store,
 		verified.WithKeyPrefix("verified:reflux:"),
 		verified.WithKeyExpires(time.Minute*3),
 		verified.WithMaxErrQuota(3),
@@ -102,15 +83,10 @@ func TestReflux_In_Quota(t *testing.T) {
 	require.True(t, b)
 }
 
-func TestReflux_Over_Quota(t *testing.T) {
-	mr, err := miniredis.Run()
-	assert.NoError(t, err)
-
-	defer mr.Close()
-
+func testReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		store,
 		verified.WithKeyPrefix("verified:reflux:"),
 		verified.WithKeyExpires(time.Minute*3),
 		verified.WithMaxErrQuota(3),
@@ -134,23 +110,17 @@ func TestReflux_Over_Quota(t *testing.T) {
 }
 
 // TODO: success in redis, but failed in miniredis
-// func TestReflux_OneTime_Timeout(t *testing.T) {
-//     mr, err := miniredis.Run()
-//     assert.NoError(t, err)
-//
-//     defer mr.Close()
-//
-//     l := verified.NewVerifiedReflux(
-//         new(TestVerifiedRefluxProvider),
-//         NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-//         // NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
-//     )
-//     randKey := randString(6)
-//     value, err := l.Generate(context.Background(),defaultKind, randKey, verified.WithGenerateKeyExpires(time.Second*1))
-//     assert.NoError(t, err)
-//
-//     time.Sleep(time.Second * 2)
-//
-//     b := l.Verify(context.Background(),defaultKind, randKey, value)
-//     require.False(t, b)
-// }
+func testReflux_OneTime_Timeout[S verified.Storage](t *testing.T, store S) {
+	l := verified.NewVerifiedReflux(
+		new(TestVerifiedRefluxProvider),
+		store,
+	)
+	randKey := randString(6)
+	value, err := l.Generate(context.Background(), defaultKind, randKey, verified.WithGenerateKeyExpires(time.Second*1))
+	assert.NoError(t, err)
+
+	time.Sleep(time.Second * 2)
+
+	b := l.Verify(context.Background(), defaultKind, randKey, value)
+	require.False(t, b)
+}
