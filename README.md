@@ -1,10 +1,10 @@
 # limiter
-[![GoDoc](https://godoc.org/github.com/things-go/limiter?status.svg)](https://godoc.org/github.com/things-go/cicd-go-template)
+[![GoDoc](https://godoc.org/github.com/things-go/limiter?status.svg)](https://godoc.org/github.com/things-go/limiter)
 [![Go.Dev reference](https://img.shields.io/badge/go.dev-reference-blue?logo=go&logoColor=white)](https://pkg.go.dev/github.com/things-go/limiter?tab=doc)
-[![codecov](https://codecov.io/gh/things-go/limiter/branch/main/graph/badge.svg)](https://codecov.io/gh/things-go/cicd-go-template)
-[![Tests](https://github.com/things-go/limiter/actions/workflows/ci.yml/badge.svg)](https://github.com/things-go/cicd-go-template/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/things-go/limiter)](https://goreportcard.com/report/github.com/things-go/cicd-go-template)
-[![Licence](https://img.shields.io/github/license/things-go/limiter)](https://raw.githubusercontent.com/things-go/cicd-go-template/main/LICENSE)
+[![codecov](https://codecov.io/gh/things-go/limiter/branch/main/graph/badge.svg)](https://codecov.io/gh/things-go/limiter)
+[![Tests](https://github.com/things-go/limiter/actions/workflows/ci.yml/badge.svg)](https://github.com/things-go/limiter/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/things-go/limiter)](https://goreportcard.com/report/github.com/things-go/limiter)
+[![Licence](https://img.shields.io/github/license/things-go/limiter)](https://raw.githubusercontent.com/things-go/limiter/main/LICENSE)
 [![Tag](https://img.shields.io/github/v/tag/things-go/limiter)](https://github.com/things-go/limiter/tags)
 
 ## Features
