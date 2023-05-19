@@ -5,8 +5,7 @@
 [![Tests](https://github.com/things-go/limiter/actions/workflows/ci.yml/badge.svg)](https://github.com/things-go/cicd-go-template/actions/workflows/ci.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/things-go/limiter)](https://goreportcard.com/report/github.com/things-go/cicd-go-template)
 [![Licence](https://img.shields.io/github/license/things-go/limiter)](https://raw.githubusercontent.com/things-go/cicd-go-template/main/LICENSE)
-[![Tag](https://img.shields.io/github/v/tag/things-go/limiter)](https://github.com/things-go/cicd-go-template/tags)
-
+[![Tag](https://img.shields.io/github/v/tag/things-go/limiter)](https://github.com/things-go/limiter/tags)
 
 ## Features
 
@@ -19,11 +18,13 @@
 ### Installation
 
 Use go get.
+
 ```bash
     go get github.com/things-go/limiter
 ```
 
 Then import the package into your own code.
+
 ```bash
     import "github.com/things-go/limiter"
 ```

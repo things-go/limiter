@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,7 +28,7 @@ type LimitVerifiedProvider interface {
 }
 
 // LimitVerified limit verified code
-type LimitVerified struct {
+type LimitVerified[P LimitVerifiedProvider, S Storage] struct {
 	p             LimitVerifiedProvider // LimitVerifiedProvider send code
 	store         Storage               // store client
 	keyPrefix     string                // store 存验证码key的前缀, 默认 limit:verified:
@@ -41,8 +42,8 @@ type LimitVerified struct {
 }
 
 // NewLimitVerified  new a limit verified
-func NewLimitVerified(p LimitVerifiedProvider, store Storage, opts ...Option) *LimitVerified {
-	v := &LimitVerified{
+func NewLimitVerified[P LimitVerifiedProvider, S Storage](p P, store S, opts ...Option) *LimitVerified[P, S] {
+	v := &LimitVerified[P, S]{
 		p,
 		store,
 		"limit:verified:",
@@ -63,11 +64,11 @@ func NewLimitVerified(p LimitVerifiedProvider, store Storage, opts ...Option) *L
 }
 
 // Name the provider name
-func (v *LimitVerified) Name() string { return v.p.Name() }
+func (v *LimitVerified[P, S]) Name() string { return v.p.Name() }
 
 // SendCode send code and store.
-func (v *LimitVerified) SendCode(ctx context.Context, c CodeParam, opts ...CodeParamOption) error {
-	c.takeCodeParamOption(v, opts...)
+func (v *LimitVerified[P, S]) SendCode(ctx context.Context, c CodeParam, opts ...CodeParamOption) error {
+	takeCodeParamOption(v, &c, opts...)
 
 	nowSecond := strconv.FormatInt(time.Now().Unix(), 10)
 	err := v.store.Store(ctx, &StoreArgs{
@@ -103,8 +104,8 @@ func (v *LimitVerified) SendCode(ctx context.Context, c CodeParam, opts ...CodeP
 }
 
 // VerifyCode verify code from cache.
-func (v *LimitVerified) VerifyCode(ctx context.Context, c CodeParam) error {
-	c.takeCodeParamOption(v)
+func (v *LimitVerified[P, S]) VerifyCode(ctx context.Context, c CodeParam) error {
+	takeCodeParamOption(v, &c)
 	return v.store.Verify(ctx, &VerifyArgs{
 		KeyPrefix: v.keyPrefix,
 		Kind:      c.Kind,
@@ -115,7 +116,7 @@ func (v *LimitVerified) VerifyCode(ctx context.Context, c CodeParam) error {
 }
 
 // Incr send cnt.
-func (v *LimitVerified) Incr(ctx context.Context, target string) error {
+func (v *LimitVerified[P, S]) Incr(ctx context.Context, target string) error {
 	return v.store.Incr(ctx, &IncrArgs{
 		KeyPrefix:     v.keyPrefix,
 		Target:        target,
@@ -125,9 +126,41 @@ func (v *LimitVerified) Incr(ctx context.Context, target string) error {
 }
 
 // Decr send cnt.
-func (v *LimitVerified) Decr(ctx context.Context, target string) error {
+func (v *LimitVerified[P, S]) Decr(ctx context.Context, target string) error {
 	return v.store.Decr(ctx, &DecrArgs{
 		KeyPrefix: v.keyPrefix,
 		Target:    target,
 	})
+}
+
+func (v *LimitVerified[P, S]) setKeyPrefix(k string) {
+	if k != "" {
+		if !strings.HasSuffix(k, ":") {
+			k += ":"
+		}
+		v.keyPrefix = k
+	}
+}
+func (v *LimitVerified[P, S]) setKeyExpires(expires time.Duration) {
+	v.keyExpires = expires
+}
+
+func (v *LimitVerified[P, S]) setMaxSendPerDay(cnt int) {
+	v.maxSendPerDay = cnt
+}
+
+func (v *LimitVerified[P, S]) setCodeMaxSendPerDay(cnt int) {
+	v.codeMaxSendPerDay = cnt
+}
+
+func (v *LimitVerified[P, S]) setCodeMaxErrorQuota(cnt int) {
+	v.codeMaxErrorQuota = cnt
+}
+
+func (v *LimitVerified[P, S]) setCodeAvailWindowSecond(sec int) {
+	v.codeAvailWindowSecond = sec
+}
+
+func (v *LimitVerified[P, S]) setCodeResendIntervalSecond(sec int) {
+	v.codeResendIntervalSecond = sec
 }

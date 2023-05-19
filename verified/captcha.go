@@ -25,18 +25,18 @@ type CaptchaProvider interface {
 }
 
 // Captcha verified captcha limit
-type Captcha struct {
-	p              CaptchaProvider // CaptchaProvider generate captcha provider
-	store          Storage         // store client
-	disableOneTime bool            // 禁用一次性验证
-	keyPrefix      string          // store 存验证码key的前缀, 默认 verified:captcha:
-	keyExpires     time.Duration   // store 存验证码key的过期时间, 默认: 3 分种
-	maxErrQuota    int             // store 验证码验证最大错误次数限制, 默认: 1
+type Captcha[P CaptchaProvider, S Storage] struct {
+	p              P             // CaptchaProvider generate captcha provider
+	store          S             // store client
+	disableOneTime bool          // 禁用一次性验证
+	keyPrefix      string        // store 存验证码key的前缀, 默认 verified:captcha:
+	keyExpires     time.Duration // store 存验证码key的过期时间, 默认: 3 分种
+	maxErrQuota    int           // store 验证码验证最大错误次数限制, 默认: 1
 }
 
 // NewVerifiedCaptcha new captcha instance.
-func NewVerifiedCaptcha(p CaptchaProvider, store Storage, opts ...Option) *Captcha {
-	v := &Captcha{
+func NewVerifiedCaptcha[P CaptchaProvider, S Storage](p P, store S, opts ...Option) *Captcha[P, S] {
+	v := &Captcha[P, S]{
 		p,
 		store,
 		false,
@@ -51,10 +51,10 @@ func NewVerifiedCaptcha(p CaptchaProvider, store Storage, opts ...Option) *Captc
 }
 
 // Name the provider name
-func (v *Captcha) Name(kind string) string { return v.p.AcquireDriver(kind).Name() }
+func (v *Captcha[P, S]) Name(kind string) string { return v.p.AcquireDriver(kind).Name() }
 
 // Generate generate id, question.
-func (v *Captcha) Generate(ctx context.Context, kind string, opts ...GenerateOption) (id, question string, err error) {
+func (v *Captcha[P, S]) Generate(ctx context.Context, kind string, opts ...GenerateOption) (id, question string, err error) {
 	genOpt := generateOption{
 		keyExpires:  v.keyExpires,
 		maxErrQuota: v.maxErrQuota,
@@ -81,7 +81,7 @@ func (v *Captcha) Generate(ctx context.Context, kind string, opts ...GenerateOpt
 }
 
 // Verify the answer.
-func (v *Captcha) Verify(ctx context.Context, kind, id, answer string) bool {
+func (v *Captcha[P, S]) Verify(ctx context.Context, kind, id, answer string) bool {
 	return v.store.Verify(ctx,
 		&VerifyArgs{
 			v.disableOneTime,
@@ -91,9 +91,9 @@ func (v *Captcha) Verify(ctx context.Context, kind, id, answer string) bool {
 	)
 }
 
-func (v *Captcha) setKeyPrefix(k string)         { v.keyPrefix = k }
-func (v *Captcha) setKeyExpires(t time.Duration) { v.keyExpires = t }
-func (v *Captcha) setMaxErrQuota(quota int) {
+func (v *Captcha[P, S]) setKeyPrefix(k string)         { v.keyPrefix = k }
+func (v *Captcha[P, S]) setKeyExpires(t time.Duration) { v.keyExpires = t }
+func (v *Captcha[P, S]) setMaxErrQuota(quota int) {
 	v.disableOneTime = true
 	v.maxErrQuota = quota
 }

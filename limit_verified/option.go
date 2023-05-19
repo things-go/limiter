@@ -1,64 +1,68 @@
 package limit_verified
 
 import (
-	"strings"
 	"time"
 )
 
+type OptionSetter interface {
+	setKeyPrefix(k string)
+	setKeyExpires(expires time.Duration)
+	setMaxSendPerDay(cnt int)
+	setCodeMaxSendPerDay(cnt int)
+	setCodeMaxErrorQuota(cnt int)
+	setCodeAvailWindowSecond(sec int)
+	setCodeResendIntervalSecond(sec int)
+}
+
 // Option LimitVerified 选项
-type Option func(*LimitVerified)
+type Option func(OptionSetter)
 
 // WithKeyPrefix redis存验证码key的前缀, 默认 limit:verified:
 func WithKeyPrefix(k string) Option {
-	return func(v *LimitVerified) {
-		if k != "" {
-			if !strings.HasSuffix(k, ":") {
-				k += ":"
-			}
-			v.keyPrefix = k
-		}
+	return func(v OptionSetter) {
+		v.setKeyPrefix(k)
 	}
 }
 
 // WithKeyExpires redis存验证码key的过期时间, 默认 24小时
 func WithKeyExpires(expires time.Duration) Option {
-	return func(v *LimitVerified) {
-		v.keyExpires = expires
+	return func(v OptionSetter) {
+		v.setKeyExpires(expires)
 	}
 }
 
 // WithMaxSendPerDay 限制一天最大发送次数(全局), 默认: 10
 func WithMaxSendPerDay(cnt int) Option {
-	return func(v *LimitVerified) {
-		v.maxSendPerDay = cnt
+	return func(v OptionSetter) {
+		v.setMaxSendPerDay(cnt)
 	}
 }
 
 // WithMaxSendPerDay 验证码限制一天最大发送次数(验证码全局), 默认: 10
 func WithCodeMaxSendPerDay(cnt int) Option {
-	return func(v *LimitVerified) {
-		v.codeMaxSendPerDay = cnt
+	return func(v OptionSetter) {
+		v.setCodeMaxSendPerDay(cnt)
 	}
 }
 
 // WithCodeMaxErrorQuota 验证码最大验证失败次数, 默认: 3
 func WithCodeMaxErrorQuota(cnt int) Option {
-	return func(v *LimitVerified) {
-		v.codeMaxErrorQuota = cnt
+	return func(v OptionSetter) {
+		v.setCodeMaxErrorQuota(cnt)
 	}
 }
 
 // WithCodeAvailWindowSecond 验证码有效窗口时间, 默认180, 单位: 秒
 func WithCodeAvailWindowSecond(sec int) Option {
-	return func(v *LimitVerified) {
-		v.codeAvailWindowSecond = sec
+	return func(v OptionSetter) {
+		v.setCodeAvailWindowSecond(sec)
 	}
 }
 
 // WithCodeResendIntervalSecond 验证码重发间隔时间, 默认60, 单位: 秒
 func WithCodeResendIntervalSecond(sec int) Option {
-	return func(v *LimitVerified) {
-		v.codeResendIntervalSecond = sec
+	return func(v OptionSetter) {
+		v.setCodeResendIntervalSecond(sec)
 	}
 }
 
@@ -95,7 +99,7 @@ func WithResendIntervalSecond(sec int) CodeParamOption {
 	}
 }
 
-func (c *CodeParam) takeCodeParamOption(v *LimitVerified, opts ...CodeParamOption) {
+func takeCodeParamOption[P LimitVerifiedProvider, S Storage](v *LimitVerified[P, S], c *CodeParam, opts ...CodeParamOption) {
 	if c.Kind == "" {
 		c.Kind = DefaultKind
 	}
