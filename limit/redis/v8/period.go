@@ -68,5 +68,4 @@ func (p *PeriodBackend) GetRunValue(ctx context.Context, key string) ([]int64, e
 			key,
 		},
 	).Int64Slice()
-
 }
