@@ -37,7 +37,7 @@ func (t TestErrProvider) SendCode(c limit_verified.CodeParam) error {
 	return errors.New("发送失败")
 }
 
-func testName[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestName[S limit_verified.Storage](t *testing.T, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -45,7 +45,7 @@ func testName[S limit_verified.Storage](t *testing.T, store S) {
 	require.Equal(t, "test_provider", l.Name())
 }
 
-func testSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -55,7 +55,7 @@ func testSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T, store
 	assert.NotNil(t, err)
 }
 
-func testSendCode_Success[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Success[S limit_verified.Storage](t *testing.T, store S) {
 	l := limit_verified.NewLimitVerified(new(TestProvider),
 		store,
 		limit_verified.WithKeyPrefix("verification"),
@@ -69,7 +69,7 @@ func testSendCode_Success[S limit_verified.Storage](t *testing.T, store S) {
 	require.NoError(t, err)
 }
 
-func testSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -83,7 +83,7 @@ func testSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, store S) {
 	require.Error(t, err)
 }
 
-func testSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -103,7 +103,7 @@ func testSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S)
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
-func testSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
 	var success uint32
 	var failed uint32
 
@@ -137,7 +137,7 @@ func testSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *testing
 	require.Equal(t, uint32(14), failed)
 }
 
-func testSendCode_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -153,7 +153,7 @@ func testSendCode_ResendTooFrequently[S limit_verified.Storage](t *testing.T, st
 	require.ErrorIs(t, err, limit_verified.ErrResendTooFrequently)
 }
 
-func testSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
 	var success uint32
 	var failed uint32
 
@@ -188,7 +188,7 @@ func testSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storage](t *t
 	require.Equal(t, uint32(14), failed)
 }
 
-func testVerifyCode_Success[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_Success[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -205,7 +205,7 @@ func testVerifyCode_Success[S limit_verified.Storage](t *testing.T, store S) {
 	assert.NoError(t, err)
 }
 
-func testVerifyCode_CodeRequired[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_CodeRequired[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -220,7 +220,7 @@ func testVerifyCode_CodeRequired[S limit_verified.Storage](t *testing.T, store S
 }
 
 // TODO: mini redis 测试失败, 但redis是成功的
-func testVerifyCode_CodeExpired[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_CodeExpired[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -237,7 +237,7 @@ func testVerifyCode_CodeExpired[S limit_verified.Storage](t *testing.T, store S)
 	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
 }
 
-func testVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -257,7 +257,7 @@ func testVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, store S
 	assert.ErrorIs(t, err, limit_verified.ErrCodeMaxErrorQuota)
 }
 
-func testVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
 	var failedMaxError uint32
 	var failedVerify uint32
 
@@ -297,7 +297,7 @@ func testVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t *testin
 	require.Equal(t, uint32(12), failedMaxError)
 }
 
-func test_INCR_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTest_INCR_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -315,7 +315,7 @@ func test_INCR_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
-func test_INCR_DECR[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTest_INCR_DECR[S limit_verified.Storage](t *testing.T, store S) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()

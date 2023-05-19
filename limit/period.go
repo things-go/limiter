@@ -39,15 +39,6 @@ func NewPeriodLimit[S PeriodStorage](store S, opts ...PeriodLimitOption) *Period
 	return limiter
 }
 
-func (p *PeriodLimit[S]) align()                { p.isAlign = true }
-func (p *PeriodLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
-func (p *PeriodLimit[S]) setPeriod(v time.Duration) {
-	if vv := int(v / time.Second); vv > 0 {
-		p.period = int(v / time.Second)
-	}
-}
-func (p *PeriodLimit[S]) setQuota(v int) { p.quota = v }
-
 // Take requests a permit with context, it returns the permit state.
 func (p *PeriodLimit[S]) Take(ctx context.Context, key string) (PeriodLimitState, error) {
 	code, err := p.store.Take(
@@ -138,3 +129,12 @@ func (p *PeriodLimit[S]) calcExpireSeconds() int {
 	}
 	return p.period
 }
+
+func (p *PeriodLimit[S]) align()                { p.isAlign = true }
+func (p *PeriodLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
+func (p *PeriodLimit[S]) setPeriod(v time.Duration) {
+	if vv := int(v / time.Second); vv > 0 {
+		p.period = int(v / time.Second)
+	}
+}
+func (p *PeriodLimit[S]) setQuota(v int) { p.quota = v }

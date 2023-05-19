@@ -1,4 +1,4 @@
-package tests
+package v8
 
 import (
 	"context"
@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/things-go/limiter/limit"
-	redisV8 "github.com/things-go/limiter/limit/redis/v8"
 )
 
 var internalErr = errors.New("internal error")
@@ -38,7 +37,7 @@ func TestPeriodFailureLimit_RedisV8_RedisUnavailable(t *testing.T) {
 	assert.Nil(t, err)
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -55,7 +54,7 @@ func testPeriodFailureLimit_RedisV8(t *testing.T, opts ...limit.PeriodLimitOptio
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		opts...,
@@ -88,7 +87,7 @@ func TestPeriodFailureLimit_RedisV8_Check_In_Limit_Failure_Time_Then_Success(t *
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -125,7 +124,7 @@ func TestPeriodFailureLimit_RedisV8_Check_Over_Limit_Failure_Time_Then_Success_A
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithQuota(quota),
@@ -162,7 +161,7 @@ func TestPeriodFailureLimit_RedisV8_SetQuotaFull(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -181,7 +180,7 @@ func TestPeriodFailureLimit_RedisV8_Del(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV8.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithPeriod(seconds),

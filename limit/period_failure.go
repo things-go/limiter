@@ -17,22 +17,23 @@ const (
 
 // A PeriodFailureLimit is used to limit requests when failure during a period of time.
 type PeriodFailureLimit[S PeriodFailureStorage] struct {
+	// keyPrefix in redis
+	keyPrefix string
 	// a period seconds of time
 	period int
 	// limit quota requests during a period seconds of time.
-	quota int
-	// keyPrefix in redis
-	keyPrefix string
-	store     S
-	isAlign   bool
+	quota   int
+	isAlign bool
+	store   S
 }
 
 // NewPeriodFailureLimit returns a PeriodFailureLimit with given parameters.
 func NewPeriodFailureLimit[S PeriodFailureStorage](store S, opts ...PeriodLimitOption) *PeriodFailureLimit[S] {
 	limiter := &PeriodFailureLimit[S]{
+		keyPrefix: "limit:period:failure:", // limit:period:failure:
 		period:    int(24 * time.Hour / time.Second),
 		quota:     6,
-		keyPrefix: "limit:period:failure:", // limit:period:failure:
+		isAlign:   false,
 		store:     store,
 	}
 	for _, opt := range opts {
@@ -40,15 +41,6 @@ func NewPeriodFailureLimit[S PeriodFailureStorage](store S, opts ...PeriodLimitO
 	}
 	return limiter
 }
-
-func (p *PeriodFailureLimit[S]) align()                { p.isAlign = true }
-func (p *PeriodFailureLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
-func (p *PeriodFailureLimit[S]) setPeriod(v time.Duration) {
-	if vv := int(v / time.Second); vv > 0 {
-		p.period = int(v / time.Second)
-	}
-}
-func (p *PeriodFailureLimit[S]) setQuota(v int) { p.quota = v }
 
 // CheckErr requests a permit state.
 // same as Check
@@ -143,3 +135,12 @@ func (p *PeriodFailureLimit[S]) calcExpireSeconds() int {
 	}
 	return p.period
 }
+
+func (p *PeriodFailureLimit[S]) align()                { p.isAlign = true }
+func (p *PeriodFailureLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
+func (p *PeriodFailureLimit[S]) setPeriod(v time.Duration) {
+	if vv := int(v / time.Second); vv > 0 {
+		p.period = int(v / time.Second)
+	}
+}
+func (p *PeriodFailureLimit[S]) setQuota(v int) { p.quota = v }

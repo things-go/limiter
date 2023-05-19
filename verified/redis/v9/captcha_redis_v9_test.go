@@ -1,4 +1,4 @@
-package tests
+package v9
 
 import (
 	"testing"
@@ -7,17 +7,16 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	redisV9 "github.com/things-go/limiter/verified/redis/v9"
+	"github.com/things-go/limiter/verified/tests"
 )
 
 func TestCaptcha_RedisV89_Improve_Cover(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
-	testCaptcha_Improve_Cover(
+	tests.GenericTestCaptcha_Improve_Cover(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -26,9 +25,9 @@ func TestCaptcha_RedisV89_Unsupported_Driver(t *testing.T) {
 	require.Nil(t, err)
 	addr := mr.Addr()
 	mr.Close()
-	testCaptcha_Unsupported_Driver(
+	tests.GenericTestCaptcha_Unsupported_Driver(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
 
@@ -37,9 +36,9 @@ func TestCaptcha_RedisV89_RedisUnavailable(t *testing.T) {
 	require.Nil(t, err)
 	addr := mr.Addr()
 	mr.Close()
-	testCaptcha_RedisUnavailable(
+	tests.GenericTestCaptcha_RedisUnavailable(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
 
@@ -49,9 +48,9 @@ func TestCaptcha_RedisV89_OneTime(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_OneTime(
+	tests.GenericTestCaptcha_OneTime(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -61,9 +60,9 @@ func TestCaptcha_RedisV89_In_Quota(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_In_Quota(
+	tests.GenericTestCaptcha_In_Quota(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -73,9 +72,9 @@ func TestCaptcha_RedisV89_Over_Quota(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_Over_Quota(
+	tests.GenericTestCaptcha_Over_Quota(
 		t,
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 

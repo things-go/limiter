@@ -21,7 +21,7 @@ func (t TestVerifiedRefluxProvider) GenerateUniqueId() string {
 	return randString(6)
 }
 
-func testReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -29,7 +29,7 @@ func testReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) {
 	l.Name()
 }
 
-func testReflux_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -40,7 +40,7 @@ func testReflux_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
 	assert.Error(t, err)
 }
 
-func testReflux_One_Time[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_One_Time[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -60,7 +60,7 @@ func testReflux_One_Time[S verified.Storage](t *testing.T, store S) {
 	require.False(t, b)
 }
 
-func testReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -83,7 +83,7 @@ func testReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
 	require.True(t, b)
 }
 
-func testReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -110,7 +110,7 @@ func testReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
 }
 
 // TODO: success in redis, but failed in miniredis
-func testReflux_OneTime_Timeout[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_OneTime_Timeout[S verified.Storage](t *testing.T, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,

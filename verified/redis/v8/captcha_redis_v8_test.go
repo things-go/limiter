@@ -1,4 +1,4 @@
-package tests
+package v8
 
 import (
 	"testing"
@@ -7,17 +7,16 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	redisV8 "github.com/things-go/limiter/verified/redis/v8"
+	"github.com/things-go/limiter/verified/tests"
 )
 
 func TestCaptcha_RedisV8_Improve_Cover(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
-	testCaptcha_Improve_Cover(
+	tests.GenericTestCaptcha_Improve_Cover(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -26,9 +25,9 @@ func TestCaptcha_RedisV8_Unsupported_Driver(t *testing.T) {
 	require.Nil(t, err)
 	addr := mr.Addr()
 	mr.Close()
-	testCaptcha_Unsupported_Driver(
+	tests.GenericTestCaptcha_Unsupported_Driver(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
 
@@ -37,9 +36,9 @@ func TestCaptcha_RedisV8_RedisUnavailable(t *testing.T) {
 	require.Nil(t, err)
 	addr := mr.Addr()
 	mr.Close()
-	testCaptcha_RedisUnavailable(
+	tests.GenericTestCaptcha_RedisUnavailable(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
 
@@ -49,9 +48,9 @@ func TestCaptcha_RedisV8_OneTime(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_OneTime(
+	tests.GenericTestCaptcha_OneTime(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -61,9 +60,9 @@ func TestCaptcha_RedisV8_In_Quota(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_In_Quota(
+	tests.GenericTestCaptcha_In_Quota(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -73,9 +72,9 @@ func TestCaptcha_RedisV8_Over_Quota(t *testing.T) {
 
 	defer mr.Close()
 
-	testCaptcha_Over_Quota(
+	tests.GenericTestCaptcha_Over_Quota(
 		t,
-		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -88,7 +87,7 @@ func TestCaptcha_RedisV8_Over_Quota(t *testing.T) {
 
 // 	testCaptcha_Onetime_Timeout(
 // 		t,
-// 		// redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-// 		redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
+// 		// NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+// 		NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
 // 	)
 // }

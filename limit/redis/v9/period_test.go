@@ -1,4 +1,4 @@
-package tests
+package v9
 
 import (
 	"context"
@@ -10,10 +10,15 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/things-go/limiter/limit"
-	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 )
 
-var _ limit.PeriodLimitDriver = (*limit.PeriodLimit[*redisV9.PeriodStore])(nil)
+const (
+	seconds = time.Second
+	quota   = 5
+	total   = 100
+)
+
+var _ limit.PeriodLimitDriver = (*limit.PeriodLimit[*PeriodStore])(nil)
 
 func TestPeriodLimit_RedisV9_Take(t *testing.T) {
 	testPeriodLimit_RedisV9(t,
@@ -38,7 +43,7 @@ func TestPeriodLimit_RedisV9_RedisUnavailable(t *testing.T) {
 	assert.NoError(t, err)
 
 	l := limit.NewPeriodLimit(
-		redisV9.NewPeriodStore(
+		NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -55,7 +60,7 @@ func testPeriodLimit_RedisV9(t *testing.T, opts ...limit.PeriodLimitOption) {
 	defer mr.Close()
 
 	l := limit.NewPeriodLimit(
-		redisV9.NewPeriodStore(
+		NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		opts...,
@@ -89,7 +94,7 @@ func TestPeriodLimit_RedisV9_QuotaFull(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodLimit(
-		redisV9.NewPeriodStore(
+		NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithPeriod(1),
@@ -106,7 +111,7 @@ func TestPeriodLimit_RedisV9_SetQuotaFull(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodLimit(
-		redisV9.NewPeriodStore(
+		NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -125,7 +130,7 @@ func TestPeriodLimit_RedisV9_Del(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodLimit(
-		redisV9.NewPeriodStore(
+		NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithPeriod(seconds),

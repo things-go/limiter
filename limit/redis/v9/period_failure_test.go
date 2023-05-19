@@ -1,7 +1,8 @@
-package tests
+package v9
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
@@ -10,10 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/things-go/limiter/limit"
-	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 )
 
-var _ limit.PeriodFailureLimitDriver = (*limit.PeriodFailureLimit[*redisV9.PeriodFailureStore])(nil)
+var internalErr = errors.New("internal error")
+
+var _ limit.PeriodFailureLimitDriver = (*limit.PeriodFailureLimit[*PeriodFailureStore])(nil)
 
 func TestPeriodFailureLimit_RedisV9_Check(t *testing.T) {
 	testPeriodFailureLimit_RedisV9(t,
@@ -37,7 +39,7 @@ func TestPeriodFailureLimit_RedisV9_RedisUnavailable(t *testing.T) {
 	assert.Nil(t, err)
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -54,7 +56,7 @@ func testPeriodFailureLimit_RedisV9(t *testing.T, opts ...limit.PeriodLimitOptio
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		opts...,
@@ -87,7 +89,7 @@ func TestPeriodFailureLimit_RedisV9_Check_In_Limit_Failure_Time_Then_Success(t *
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -124,7 +126,7 @@ func TestPeriodFailureLimit_RedisV9_Check_Over_Limit_Failure_Time_Then_Success_A
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithQuota(quota),
@@ -161,7 +163,7 @@ func TestPeriodFailureLimit_RedisV9_SetQuotaFull(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -180,7 +182,7 @@ func TestPeriodFailureLimit_RedisV9_Del(t *testing.T) {
 	defer mr.Close()
 
 	l := limit.NewPeriodFailureLimit(
-		redisV9.NewPeriodFailureStore(
+		NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 		limit.WithPeriod(seconds),
