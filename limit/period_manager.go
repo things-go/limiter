@@ -3,7 +3,6 @@ package limit
 import (
 	"context"
 	"sync"
-	"time"
 )
 
 const unsupportedPeriodLimitKind = "__unsupported_period_limit_kind__"
@@ -108,12 +107,6 @@ func (u UnsupportedPeriodLimitDriver) SetQuotaFull(context.Context, string) erro
 }
 func (u UnsupportedPeriodLimitDriver) Del(context.Context, string) error {
 	return ErrUnsupportedDriver
-}
-func (u UnsupportedPeriodLimitDriver) TTL(context.Context, string) (time.Duration, error) {
-	return 0, ErrUnsupportedDriver
-}
-func (u UnsupportedPeriodLimitDriver) GetInt(context.Context, string) (int, bool, error) {
-	return 0, false, ErrUnsupportedDriver
 }
 func (u UnsupportedPeriodLimitDriver) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
 	return nil, ErrUnsupportedDriver
