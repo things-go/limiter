@@ -1,4 +1,4 @@
-package v9
+package tests
 
 import (
 	"context"
@@ -9,53 +9,55 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
-	redisScript "github.com/things-go/limiter/limit"
+	"github.com/things-go/limiter/limit"
+	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 )
 
-const (
-	seconds = time.Second
-	quota   = 5
-	total   = 100
-)
+var _ limit.PeriodLimitDriver = (*limit.PeriodLimit[*redisV9.PeriodBackend])(nil)
 
-func TestPeriodLimit_Take(t *testing.T) {
-	testPeriodLimit(t,
-		WithKeyPrefix("limit:period"),
-		WithPeriod(seconds),
-		WithQuota(quota),
+func TestPeriodLimit_RedisV9_Take(t *testing.T) {
+	testPeriodLimit_RedisV9(t,
+		limit.WithKeyPrefix("limit:period"),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 }
 
-func TestPeriodLimit_TakeWithAlign(t *testing.T) {
-	testPeriodLimit(t,
-		WithKeyPrefix("limit:period"),
-		WithAlign(),
-		WithPeriod(seconds),
-		WithQuota(quota),
+func TestPeriodLimit_RedisV9_TakeWithAlign(t *testing.T) {
+	testPeriodLimit_RedisV9(
+		t,
+		limit.WithKeyPrefix("limit:period"),
+		limit.WithAlign(),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 }
 
-func TestPeriodLimit_RedisUnavailable(t *testing.T) {
+func TestPeriodLimit_RedisV9_RedisUnavailable(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
-	l := NewPeriodLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodLimit(
+		redisV9.NewPeriodBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 	)
 	mr.Close()
 	val, err := l.Take(context.Background(), "first")
 	assert.Error(t, err)
-	assert.Equal(t, redisScript.PeriodLimitStsUnknown, val)
+	assert.Equal(t, limit.PeriodLimitStsUnknown, val)
 }
 
-func testPeriodLimit(t *testing.T, opts ...PeriodLimitOption) {
+func testPeriodLimit_RedisV9(t *testing.T, opts ...limit.PeriodLimitOption) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
 	defer mr.Close()
 
-	l := NewPeriodLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodLimit(
+		redisV9.NewPeriodBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 		opts...,
 	)
 	var allowed, hitQuota, overQuota int
@@ -63,13 +65,13 @@ func testPeriodLimit(t *testing.T, opts ...PeriodLimitOption) {
 		val, err := l.Take(context.Background(), "first")
 		assert.NoError(t, err)
 		switch val {
-		case redisScript.PeriodLimitStsAllowed:
+		case limit.PeriodLimitStsAllowed:
 			allowed++
-		case redisScript.PeriodLimitStsHitQuota:
+		case limit.PeriodLimitStsHitQuota:
 			hitQuota++
-		case redisScript.PeriodLimitStsOverQuota:
+		case limit.PeriodLimitStsOverQuota:
 			overQuota++
-		case redisScript.PeriodLimitStsUnknown:
+		case limit.PeriodLimitStsUnknown:
 			fallthrough
 		default:
 			t.Error("unknown status")
@@ -81,28 +83,32 @@ func testPeriodLimit(t *testing.T, opts ...PeriodLimitOption) {
 	assert.Equal(t, total-quota, overQuota)
 }
 
-func TestPeriodLimit_QuotaFull(t *testing.T) {
+func TestPeriodLimit_RedisV9_QuotaFull(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 	defer mr.Close()
 
-	l := NewPeriodLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
-		WithPeriod(1),
-		WithQuota(1),
+	l := limit.NewPeriodLimit(
+		redisV9.NewPeriodBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
+		limit.WithPeriod(1),
+		limit.WithQuota(1),
 	)
 	val, err := l.Take(context.Background(), "first")
 	assert.NoError(t, err)
 	assert.True(t, val.IsHitQuota())
 }
 
-func TestPeriodLimit_SetQuotaFull(t *testing.T) {
+func TestPeriodLimit_RedisV9_SetQuotaFull(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 	defer mr.Close()
 
-	l := NewPeriodLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodLimit(
+		redisV9.NewPeriodBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 	)
 
 	err = l.SetQuotaFull(context.Background(), "first")
@@ -110,29 +116,28 @@ func TestPeriodLimit_SetQuotaFull(t *testing.T) {
 
 	val, err := l.Take(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.Equal(t, redisScript.PeriodLimitStsOverQuota, val)
+	assert.Equal(t, limit.PeriodLimitStsOverQuota, val)
 }
 
-func TestPeriodLimit_Del(t *testing.T) {
+func TestPeriodLimit_RedisV9_Del(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 	defer mr.Close()
 
-	l := NewPeriodLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
-		WithPeriod(seconds),
-		WithQuota(quota),
+	l := limit.NewPeriodLimit(
+		redisV9.NewPeriodBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 
 	// 第一次, key不存在
-	v, b, err := l.GetInt(context.Background(), "first")
+	rv, err := l.GetRunValue(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.False(t, b)
-	assert.Equal(t, 0, v)
-
-	tt, err := l.TTL(context.Background(), "first")
-	assert.NoError(t, err)
-	assert.Equal(t, int(tt), -2)
+	assert.False(t, rv.Exist)
+	assert.Zero(t, rv.Count)
+	assert.Zero(t, int(rv.TTL))
 
 	runValue, err := l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
@@ -144,14 +149,11 @@ func TestPeriodLimit_Del(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 第二次, key 存在
-	v, b, err = l.GetInt(context.Background(), "first")
+	rv, err = l.GetRunValue(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.True(t, b)
-	assert.Equal(t, quota, v)
-
-	tt, err = l.TTL(context.Background(), "first")
-	assert.NoError(t, err)
-	assert.LessOrEqual(t, tt, seconds)
+	assert.True(t, rv.Exist)
+	assert.Equal(t, int64(quota), rv.Count)
+	assert.LessOrEqual(t, seconds, rv.TTL)
 
 	runValue, err = l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)

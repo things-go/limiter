@@ -1,43 +1,45 @@
-package v8
+package tests
 
 import (
 	"context"
-	"errors"
 	"testing"
 	"time"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/things-go/limiter/limit"
+	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 )
 
-var internalErr = errors.New("internal error")
+var _ limit.PeriodFailureLimitDriver = (*limit.PeriodFailureLimit[*redisV9.PeriodFailureBackend])(nil)
 
-func TestPeriodFailureLimit_Check(t *testing.T) {
-	testPeriodFailureLimit(t,
-		WithKeyPrefix("limit:period:failure:"),
-		WithPeriod(seconds),
-		WithQuota(quota),
+func TestPeriodFailureLimit_RedisV9_Check(t *testing.T) {
+	testPeriodFailureLimit_RedisV9(t,
+		limit.WithKeyPrefix("limit:period:failure:"),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 }
 
-func TestPeriodFailureLimit_CheckWithAlign(t *testing.T) {
-	testPeriodFailureLimit(t, WithAlign(),
-		WithKeyPrefix("limit:period:failure:"),
-		WithAlign(),
-		WithPeriod(seconds),
-		WithQuota(quota),
+func TestPeriodFailureLimit_RedisV9_CheckWithAlign(t *testing.T) {
+	testPeriodFailureLimit_RedisV9(t, limit.WithAlign(),
+		limit.WithKeyPrefix("limit:period:failure:"),
+		limit.WithAlign(),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 }
 
-func TestPeriodFailureLimit_RedisUnavailable(t *testing.T) {
+func TestPeriodFailureLimit_RedisV9_RedisUnavailable(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 	)
 	mr.Close()
 	sts, err := l.CheckErr(context.Background(), "first", nil)
@@ -45,14 +47,16 @@ func TestPeriodFailureLimit_RedisUnavailable(t *testing.T) {
 	assert.Equal(t, limit.PeriodFailureLimitStsUnknown, sts)
 }
 
-func testPeriodFailureLimit(t *testing.T, opts ...PeriodLimitOption) {
+func testPeriodFailureLimit_RedisV9(t *testing.T, opts ...limit.PeriodLimitOption) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 
 	defer mr.Close()
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 		opts...,
 	)
 	var inLimitCnt, overFailureTimeCnt int
@@ -76,14 +80,16 @@ func testPeriodFailureLimit(t *testing.T, opts ...PeriodLimitOption) {
 	assert.Equal(t, limit.PeriodFailureLimitStsOverQuota, sts)
 }
 
-func TestPeriodFailureLimit_Check_In_Limit_Failure_Time_Then_Success(t *testing.T) {
+func TestPeriodFailureLimit_RedisV9_Check_In_Limit_Failure_Time_Then_Success(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 
 	defer mr.Close()
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 	)
 	var inLimitCnt, overFailureTimeCnt int
 	for i := 0; i < quota-1; i++ {
@@ -105,21 +111,23 @@ func TestPeriodFailureLimit_Check_In_Limit_Failure_Time_Then_Success(t *testing.
 	assert.NoError(t, err)
 	assert.Equal(t, limit.PeriodFailureLimitStsSuccess, sts)
 
-	v, existed, err := l.GetInt(context.Background(), "first")
+	rv, err := l.GetRunValue(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.False(t, existed)
-	assert.Zero(t, v)
+	assert.False(t, rv.Exist)
+	assert.Zero(t, rv.Count)
 }
 
-func TestPeriodFailureLimit_Check_Over_Limit_Failure_Time_Then_Success_Always_OverFailureTimeError(t *testing.T) {
+func TestPeriodFailureLimit_RedisV9_Check_Over_Limit_Failure_Time_Then_Success_Always_OverFailureTimeError(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 
 	defer mr.Close()
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
-		WithQuota(quota),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
+		limit.WithQuota(quota),
 	)
 	var inLimitCnt, overFailureTimeCnt int
 	for i := 0; i < quota+1; i++ {
@@ -141,19 +149,21 @@ func TestPeriodFailureLimit_Check_Over_Limit_Failure_Time_Then_Success_Always_Ov
 	assert.NoError(t, err)
 	assert.Equal(t, limit.PeriodFailureLimitStsOverQuota, sts)
 
-	v, existed, err := l.GetInt(context.Background(), "first")
+	rv, err := l.GetRunValue(context.Background(), "first")
 	assert.NoError(t, err)
-	assert.True(t, existed)
-	assert.Equal(t, quota+1, v)
+	assert.True(t, rv.Exist)
+	assert.Equal(t, int64(quota+1), rv.Count)
 }
 
-func TestPeriodFailureLimit_SetQuotaFull(t *testing.T) {
+func TestPeriodFailureLimit_RedisV9_SetQuotaFull(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer mr.Close()
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
 	)
 
 	err = l.SetQuotaFull(context.Background(), "first")
@@ -164,26 +174,25 @@ func TestPeriodFailureLimit_SetQuotaFull(t *testing.T) {
 	assert.Equal(t, limit.PeriodFailureLimitStsOverQuota, sts)
 }
 
-func TestPeriodFailureLimit_Del(t *testing.T) {
+func TestPeriodFailureLimit_RedisV9_Del(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.Nil(t, err)
 	defer mr.Close()
 
-	l := NewPeriodFailureLimit(
-		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
-		WithPeriod(seconds),
-		WithQuota(quota),
+	l := limit.NewPeriodFailureLimit(
+		redisV9.NewPeriodFailureBackend(
+			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
+		),
+		limit.WithPeriod(seconds),
+		limit.WithQuota(quota),
 	)
 
 	// 第一次, key不存在
-	v, b, err := l.GetInt(context.Background(), "first")
+	rv, err := l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
-	assert.False(t, b)
-	assert.Equal(t, 0, v)
-
-	tt, err := l.TTL(context.Background(), "first")
-	assert.Nil(t, err)
-	assert.Equal(t, int(tt), -2)
+	assert.False(t, rv.Exist)
+	assert.Zero(t, rv.Count)
+	assert.Zero(t, int(rv.TTL))
 
 	runValue, err := l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
@@ -195,13 +204,10 @@ func TestPeriodFailureLimit_Del(t *testing.T) {
 	assert.Nil(t, err)
 
 	// 第二次, key 存在
-	v, b, err = l.GetInt(context.Background(), "first")
+	rv, err = l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)
-	assert.Equal(t, quota, v)
-
-	tt, err = l.TTL(context.Background(), "first")
-	assert.Nil(t, err)
-	assert.LessOrEqual(t, tt, seconds)
+	assert.Equal(t, int64(quota), rv.Count)
+	assert.LessOrEqual(t, seconds, rv.TTL)
 
 	runValue, err = l.GetRunValue(context.Background(), "first")
 	assert.Nil(t, err)

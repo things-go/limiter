@@ -12,10 +12,3 @@ var PeriodLimitSetQuotaFullScript string
 
 //go:embed  period_run_value.lua
 var PeriodLimitRunValueScript string
-
-const (
-	// inner lua code
-	InnerPeriodLimitAllowed   = 0
-	InnerPeriodLimitHitQuota  = 1
-	InnerPeriodLimitOverQuota = 2
-)
