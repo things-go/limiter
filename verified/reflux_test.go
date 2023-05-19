@@ -1,4 +1,4 @@
-package v9
+package verified_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	redisV9 "github.com/things-go/limiter/verified/redis/v9"
 	"github.com/things-go/limiter/verified/tests"
 )
 
@@ -16,7 +17,7 @@ func TestReflux_RedisV9_Improve_Cover(t *testing.T) {
 	defer mr.Close()
 	tests.GenericTestReflux_Improve_Cover(
 		t,
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -27,7 +28,7 @@ func TestReflux_RedisV9_RedisUnavailable(t *testing.T) {
 	mr.Close()
 	tests.GenericTestReflux_RedisUnavailable(
 		t,
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
 
@@ -39,7 +40,7 @@ func TestReflux_RedisV9_One_Time(t *testing.T) {
 
 	tests.GenericTestReflux_One_Time(
 		t,
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -51,7 +52,7 @@ func TestReflux_RedisV9_In_Quota(t *testing.T) {
 
 	tests.GenericTestReflux_In_Quota(
 		t,
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -63,7 +64,7 @@ func TestReflux_RedisV9_Over_Quota(t *testing.T) {
 
 	tests.GenericTestReflux_Over_Quota(
 		t,
-		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
@@ -74,9 +75,9 @@ func TestReflux_RedisV9_Over_Quota(t *testing.T) {
 
 // 	defer mr.Close()
 
-// 	testReflux_OneTime_Timeout(
+// 	tests.GenericTestReflux_OneTime_Timeout(
 // 		t,
-// 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-// 		// NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 4})),
+// 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+// 		// redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 4})),
 // 	)
 // }

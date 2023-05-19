@@ -85,9 +85,9 @@ func TestCaptcha_RedisV8_Over_Quota(t *testing.T) {
 
 // 	defer mr.Close()
 
-// 	testCaptcha_Onetime_Timeout(
+// 	tests.GenericTestCaptcha_Onetime_Timeout(
 // 		t,
-// 		// NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-// 		NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
+// 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+// 		// NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
 // 	)
 // }
