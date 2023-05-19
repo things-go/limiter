@@ -16,20 +16,20 @@ const (
 )
 
 // A PeriodFailureLimit is used to limit requests when failure during a period of time.
-type PeriodFailureLimit[B PeriodFailureBackend] struct {
+type PeriodFailureLimit[S PeriodFailureStorage] struct {
 	// a period seconds of time
 	period int
 	// limit quota requests during a period seconds of time.
 	quota int
 	// keyPrefix in redis
 	keyPrefix string
-	store     B
+	store     S
 	isAlign   bool
 }
 
 // NewPeriodFailureLimit returns a PeriodFailureLimit with given parameters.
-func NewPeriodFailureLimit[B PeriodFailureBackend](store B, opts ...PeriodLimitOption) *PeriodFailureLimit[B] {
-	limiter := &PeriodFailureLimit[B]{
+func NewPeriodFailureLimit[S PeriodFailureStorage](store S, opts ...PeriodLimitOption) *PeriodFailureLimit[S] {
+	limiter := &PeriodFailureLimit[S]{
 		period:    int(24 * time.Hour / time.Second),
 		quota:     6,
 		keyPrefix: "limit:period:failure:", // limit:period:failure:
@@ -41,23 +41,23 @@ func NewPeriodFailureLimit[B PeriodFailureBackend](store B, opts ...PeriodLimitO
 	return limiter
 }
 
-func (p *PeriodFailureLimit[B]) align()                { p.isAlign = true }
-func (p *PeriodFailureLimit[B]) setKeyPrefix(k string) { p.keyPrefix = k }
-func (p *PeriodFailureLimit[B]) setPeriod(v time.Duration) {
+func (p *PeriodFailureLimit[S]) align()                { p.isAlign = true }
+func (p *PeriodFailureLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
+func (p *PeriodFailureLimit[S]) setPeriod(v time.Duration) {
 	if vv := int(v / time.Second); vv > 0 {
 		p.period = int(v / time.Second)
 	}
 }
-func (p *PeriodFailureLimit[B]) setQuota(v int) { p.quota = v }
+func (p *PeriodFailureLimit[S]) setQuota(v int) { p.quota = v }
 
 // CheckErr requests a permit state.
 // same as Check
-func (p *PeriodFailureLimit[B]) CheckErr(ctx context.Context, key string, err error) (PeriodFailureLimitState, error) {
+func (p *PeriodFailureLimit[S]) CheckErr(ctx context.Context, key string, err error) (PeriodFailureLimitState, error) {
 	return p.Check(ctx, key, err == nil)
 }
 
 // Check requests a permit.
-func (p *PeriodFailureLimit[B]) Check(ctx context.Context, key string, success bool) (PeriodFailureLimitState, error) {
+func (p *PeriodFailureLimit[S]) Check(ctx context.Context, key string, success bool) (PeriodFailureLimitState, error) {
 	code, err := p.store.Check(ctx,
 		p.formatKey(key),
 		p.quota,
@@ -80,7 +80,7 @@ func (p *PeriodFailureLimit[B]) Check(ctx context.Context, key string, success b
 }
 
 // SetQuotaFull set a permit over quota.
-func (p *PeriodFailureLimit[B]) SetQuotaFull(ctx context.Context, key string) error {
+func (p *PeriodFailureLimit[S]) SetQuotaFull(ctx context.Context, key string) error {
 	return p.store.SetQuotaFull(ctx,
 		p.formatKey(key),
 		p.quota,
@@ -89,7 +89,7 @@ func (p *PeriodFailureLimit[B]) SetQuotaFull(ctx context.Context, key string) er
 }
 
 // Del delete a permit
-func (p *PeriodFailureLimit[B]) Del(ctx context.Context, key string) error {
+func (p *PeriodFailureLimit[S]) Del(ctx context.Context, key string) error {
 	return p.store.Del(ctx, p.formatKey(key))
 }
 
@@ -97,7 +97,7 @@ func (p *PeriodFailureLimit[B]) Del(ctx context.Context, key string) error {
 // Exist: false if key not exist.
 // Count: current failure count
 // TTL: not set expire time, t = -1
-func (p *PeriodFailureLimit[B]) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
+func (p *PeriodFailureLimit[S]) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
 	tb, err := p.store.GetRunValue(ctx, p.formatKey(key))
 	if err != nil {
 		return nil, err
@@ -130,11 +130,11 @@ func (p *PeriodFailureLimit[B]) GetRunValue(ctx context.Context, key string) (*R
 	}
 }
 
-func (p *PeriodFailureLimit[B]) formatKey(key string) string {
+func (p *PeriodFailureLimit[S]) formatKey(key string) string {
 	return p.keyPrefix + key
 }
 
-func (p *PeriodFailureLimit[B]) calcExpireSeconds() int {
+func (p *PeriodFailureLimit[S]) calcExpireSeconds() int {
 	if p.isAlign {
 		now := time.Now()
 		_, offset := now.Zone()

@@ -13,7 +13,7 @@ const (
 )
 
 // A PeriodLimit is used to limit requests during a period of time.
-type PeriodLimit[B PeriodBackend] struct {
+type PeriodLimit[S PeriodStorage] struct {
 	// keyPrefix in redis
 	keyPrefix string
 	// a period seconds of time
@@ -21,12 +21,12 @@ type PeriodLimit[B PeriodBackend] struct {
 	// limit quota requests during a period seconds of time.
 	quota   int
 	isAlign bool
-	store   B
+	store   S
 }
 
 // NewPeriodLimit returns a PeriodLimit with given parameters.
-func NewPeriodLimit[B PeriodBackend](store B, opts ...PeriodLimitOption) *PeriodLimit[B] {
-	limiter := &PeriodLimit[B]{
+func NewPeriodLimit[S PeriodStorage](store S, opts ...PeriodLimitOption) *PeriodLimit[S] {
+	limiter := &PeriodLimit[S]{
 		keyPrefix: "limit:period:",
 		period:    int(24 * time.Hour / time.Second),
 		quota:     6,
@@ -39,17 +39,17 @@ func NewPeriodLimit[B PeriodBackend](store B, opts ...PeriodLimitOption) *Period
 	return limiter
 }
 
-func (p *PeriodLimit[B]) align()                { p.isAlign = true }
-func (p *PeriodLimit[B]) setKeyPrefix(k string) { p.keyPrefix = k }
-func (p *PeriodLimit[B]) setPeriod(v time.Duration) {
+func (p *PeriodLimit[S]) align()                { p.isAlign = true }
+func (p *PeriodLimit[S]) setKeyPrefix(k string) { p.keyPrefix = k }
+func (p *PeriodLimit[S]) setPeriod(v time.Duration) {
 	if vv := int(v / time.Second); vv > 0 {
 		p.period = int(v / time.Second)
 	}
 }
-func (p *PeriodLimit[B]) setQuota(v int) { p.quota = v }
+func (p *PeriodLimit[S]) setQuota(v int) { p.quota = v }
 
 // Take requests a permit with context, it returns the permit state.
-func (p *PeriodLimit[B]) Take(ctx context.Context, key string) (PeriodLimitState, error) {
+func (p *PeriodLimit[S]) Take(ctx context.Context, key string) (PeriodLimitState, error) {
 	code, err := p.store.Take(
 		ctx,
 		p.formatKey(key),
@@ -72,7 +72,7 @@ func (p *PeriodLimit[B]) Take(ctx context.Context, key string) (PeriodLimitState
 }
 
 // SetQuotaFull set a permit over quota.
-func (p *PeriodLimit[B]) SetQuotaFull(ctx context.Context, key string) error {
+func (p *PeriodLimit[S]) SetQuotaFull(ctx context.Context, key string) error {
 	return p.store.SetQuotaFull(ctx,
 		p.formatKey(key),
 		p.quota,
@@ -81,7 +81,7 @@ func (p *PeriodLimit[B]) SetQuotaFull(ctx context.Context, key string) error {
 }
 
 // Del delete a permit
-func (p *PeriodLimit[B]) Del(ctx context.Context, key string) error {
+func (p *PeriodLimit[S]) Del(ctx context.Context, key string) error {
 	return p.store.Del(ctx, p.formatKey(key))
 }
 
@@ -89,7 +89,7 @@ func (p *PeriodLimit[B]) Del(ctx context.Context, key string) error {
 // Exist: false if key not exist.
 // Count: current count
 // TTL: not set expire time, t = -1
-func (p *PeriodLimit[B]) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
+func (p *PeriodLimit[S]) GetRunValue(ctx context.Context, key string) (*RunValue, error) {
 	tb, err := p.store.GetRunValue(
 		ctx,
 		p.formatKey(key),
@@ -125,11 +125,11 @@ func (p *PeriodLimit[B]) GetRunValue(ctx context.Context, key string) (*RunValue
 	}
 }
 
-func (p *PeriodLimit[B]) formatKey(key string) string {
+func (p *PeriodLimit[S]) formatKey(key string) string {
 	return p.keyPrefix + key
 }
 
-func (p *PeriodLimit[B]) calcExpireSeconds() int {
+func (p *PeriodLimit[S]) calcExpireSeconds() int {
 	if p.isAlign {
 		now := time.Now()
 		_, offset := now.Zone()

@@ -10,22 +10,22 @@ import (
 	redisScript "github.com/things-go/limiter/limit/redis"
 )
 
-var _ limit.PeriodBackend = (*PeriodBackend)(nil)
+var _ limit.PeriodStorage = (*PeriodStore)(nil)
 
-// A PeriodBackend is used to limit requests during a period of time.
-type PeriodBackend struct {
+// A PeriodStore is used to limit requests during a period of time.
+type PeriodStore struct {
 	store *redis.Client
 }
 
-// NewPeriodBackend returns a PeriodLimit with given parameters.
-func NewPeriodBackend(store *redis.Client) *PeriodBackend {
-	return &PeriodBackend{
+// NewPeriodStore returns a PeriodLimit with given parameters.
+func NewPeriodStore(store *redis.Client) *PeriodStore {
+	return &PeriodStore{
 		store: store,
 	}
 }
 
 // Take requests a permit with context, it returns the permit state.
-func (p *PeriodBackend) Take(ctx context.Context, key string, quota, expireSec int) (int64, error) {
+func (p *PeriodStore) Take(ctx context.Context, key string, quota, expireSec int) (int64, error) {
 	return p.store.Eval(ctx,
 		redisScript.PeriodLimitScript,
 		[]string{
@@ -39,7 +39,7 @@ func (p *PeriodBackend) Take(ctx context.Context, key string, quota, expireSec i
 }
 
 // SetQuotaFull set a permit over quota.
-func (p *PeriodBackend) SetQuotaFull(ctx context.Context, key string, quota, expireSec int) error {
+func (p *PeriodStore) SetQuotaFull(ctx context.Context, key string, quota, expireSec int) error {
 	return p.store.Eval(ctx,
 		redisScript.PeriodLimitSetQuotaFullScript,
 		[]string{
@@ -53,7 +53,7 @@ func (p *PeriodBackend) SetQuotaFull(ctx context.Context, key string, quota, exp
 }
 
 // Del delete a permit
-func (p *PeriodBackend) Del(ctx context.Context, key string) error {
+func (p *PeriodStore) Del(ctx context.Context, key string) error {
 	return p.store.Del(ctx, key).Err()
 }
 
@@ -61,7 +61,7 @@ func (p *PeriodBackend) Del(ctx context.Context, key string) error {
 // Exist: false if key not exist.
 // Count: current count
 // TTL: not set expire time, t = -1
-func (p *PeriodBackend) GetRunValue(ctx context.Context, key string) ([]int64, error) {
+func (p *PeriodStore) GetRunValue(ctx context.Context, key string) ([]int64, error) {
 	return p.store.Eval(ctx,
 		redisScript.PeriodLimitRunValueScript,
 		[]string{

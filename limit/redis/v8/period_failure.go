@@ -10,22 +10,22 @@ import (
 	redisScript "github.com/things-go/limiter/limit/redis"
 )
 
-var _ limit.PeriodFailureBackend = (*PeriodFailureBackend)(nil)
+var _ limit.PeriodFailureStorage = (*PeriodFailureStore)(nil)
 
-// A PeriodFailureBackend is used to limit requests when failure during a period of time.
-type PeriodFailureBackend struct {
+// A PeriodFailureStore is used to limit requests when failure during a period of time.
+type PeriodFailureStore struct {
 	store *redis.Client
 }
 
 // NewPeriodFailureStore returns a PeriodFailureLimit with given parameters.
-func NewPeriodFailureStore(store *redis.Client) *PeriodFailureBackend {
-	return &PeriodFailureBackend{
+func NewPeriodFailureStore(store *redis.Client) *PeriodFailureStore {
+	return &PeriodFailureStore{
 		store: store,
 	}
 }
 
 // Check requests a permit.
-func (p *PeriodFailureBackend) Check(ctx context.Context, key string, quota, expireSec int, success bool) (int64, error) {
+func (p *PeriodFailureStore) Check(ctx context.Context, key string, quota, expireSec int, success bool) (int64, error) {
 	s := "0"
 	if success {
 		s = "1"
@@ -42,7 +42,7 @@ func (p *PeriodFailureBackend) Check(ctx context.Context, key string, quota, exp
 }
 
 // SetQuotaFull set a permit over quota.
-func (p *PeriodFailureBackend) SetQuotaFull(ctx context.Context, key string, quota, expireSec int) error {
+func (p *PeriodFailureStore) SetQuotaFull(ctx context.Context, key string, quota, expireSec int) error {
 	err := p.store.Eval(ctx,
 		redisScript.PeriodFailureLimitFixedSetQuotaFullScript,
 		[]string{key},
@@ -58,7 +58,7 @@ func (p *PeriodFailureBackend) SetQuotaFull(ctx context.Context, key string, quo
 }
 
 // Del delete a permit
-func (p *PeriodFailureBackend) Del(ctx context.Context, key string) error {
+func (p *PeriodFailureStore) Del(ctx context.Context, key string) error {
 	return p.store.Del(ctx, key).Err()
 }
 
@@ -66,7 +66,7 @@ func (p *PeriodFailureBackend) Del(ctx context.Context, key string) error {
 // Exist: false if key not exist.
 // Count: current failure count
 // TTL: not set expire time, t = -1
-func (p *PeriodFailureBackend) GetRunValue(ctx context.Context, key string) ([]int64, error) {
+func (p *PeriodFailureStore) GetRunValue(ctx context.Context, key string) ([]int64, error) {
 	return p.store.Eval(ctx,
 		redisScript.PeriodFailureLimitRunValueScript,
 		[]string{key},
