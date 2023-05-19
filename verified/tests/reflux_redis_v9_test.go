@@ -69,15 +69,15 @@ func TestReflux_RedisV9_Over_Quota(t *testing.T) {
 }
 
 // TODO: success in redis, but failed in miniredis
-func TestReflux_RedisV9_OneTime_Timeout(t *testing.T) {
-	mr, err := miniredis.Run()
-	assert.NoError(t, err)
+// func TestReflux_RedisV9_OneTime_Timeout(t *testing.T) {
+// 	mr, err := miniredis.Run()
+// 	assert.NoError(t, err)
 
-	defer mr.Close()
+// 	defer mr.Close()
 
-	testReflux_OneTime_Timeout(
-		t,
-		// redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 4})),
-	)
-}
+// 	testReflux_OneTime_Timeout(
+// 		t,
+// 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+// 		// redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 4})),
+// 	)
+// }
