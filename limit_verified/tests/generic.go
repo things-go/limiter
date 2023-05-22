@@ -56,7 +56,8 @@ func GenericTestSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T
 }
 
 func GenericTestSendCode_Success[S limit_verified.Storage](t *testing.T, store S) {
-	l := limit_verified.NewLimitVerified(new(TestProvider),
+	l := limit_verified.NewLimitVerified(
+		new(TestProvider),
 		store,
 		limit_verified.WithKeyPrefix("verification"),
 		limit_verified.WithKeyExpires(time.Hour),
@@ -74,7 +75,8 @@ func GenericTestSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, sto
 	require.Nil(t, err)
 	defer mr.Close()
 
-	l := limit_verified.NewLimitVerified(new(TestErrProvider),
+	l := limit_verified.NewLimitVerified(
+		new(TestErrProvider),
 		store,
 		limit_verified.WithKeyPrefix("verification:err"),
 		limit_verified.WithKeyExpires(time.Hour),
@@ -88,7 +90,8 @@ func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, s
 	require.Nil(t, err)
 	defer mr.Close()
 
-	l := limit_verified.NewLimitVerified(new(TestProvider),
+	l := limit_verified.NewLimitVerified(
+		new(TestProvider),
 		store,
 		limit_verified.WithMaxSendPerDay(1),
 		limit_verified.WithCodeMaxSendPerDay(1),

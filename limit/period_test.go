@@ -1,12 +1,13 @@
-package v8
+package limit_test
 
 import (
 	"testing"
 
 	"github.com/alicebob/miniredis/v2"
-	"github.com/go-redis/redis/v8"
+	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
+	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 	"github.com/things-go/limiter/limit/tests"
 )
 
@@ -18,7 +19,7 @@ func TestPeriodLimit_Take(t *testing.T) {
 
 	tests.TestPeriodLimit_Take(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -32,7 +33,7 @@ func TestPeriodLimit_TakeWithAlign(t *testing.T) {
 
 	tests.TestPeriodLimit_TakeWithAlign(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -46,7 +47,7 @@ func TestPeriodLimit_RedisUnavailable(t *testing.T) {
 	mr.Close()
 	tests.TestPeriodLimit_RedisUnavailable(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: addr}),
 		),
 	)
@@ -59,7 +60,7 @@ func TestPeriodLimit_QuotaFull(t *testing.T) {
 
 	tests.TestPeriodLimit_QuotaFull(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -72,7 +73,7 @@ func TestPeriodLimit_SetQuotaFull(t *testing.T) {
 
 	tests.TestPeriodLimit_SetQuotaFull(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -85,7 +86,7 @@ func TestPeriodLimit_Del(t *testing.T) {
 
 	tests.TestPeriodLimit_Del(
 		t,
-		NewPeriodStore(
+		redisV9.NewPeriodStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)

@@ -10,7 +10,7 @@ import (
 	"github.com/things-go/limiter/verified/tests"
 )
 
-func TestCaptcha_RedisV89_Improve_Cover(t *testing.T) {
+func TestCaptcha_Improve_Cover(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -20,7 +20,7 @@ func TestCaptcha_RedisV89_Improve_Cover(t *testing.T) {
 	)
 }
 
-func TestCaptcha_RedisV89_Unsupported_Driver(t *testing.T) {
+func TestCaptcha_Unsupported_Driver(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	addr := mr.Addr()
@@ -31,7 +31,7 @@ func TestCaptcha_RedisV89_Unsupported_Driver(t *testing.T) {
 	)
 }
 
-func TestCaptcha_RedisV89_RedisUnavailable(t *testing.T) {
+func TestCaptcha_RedisUnavailable(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	addr := mr.Addr()
@@ -42,7 +42,7 @@ func TestCaptcha_RedisV89_RedisUnavailable(t *testing.T) {
 	)
 }
 
-func TestCaptcha_RedisV89_OneTime(t *testing.T) {
+func TestCaptcha_OneTime(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -54,7 +54,7 @@ func TestCaptcha_RedisV89_OneTime(t *testing.T) {
 	)
 }
 
-func TestCaptcha_RedisV89_In_Quota(t *testing.T) {
+func TestCaptcha_In_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -66,7 +66,7 @@ func TestCaptcha_RedisV89_In_Quota(t *testing.T) {
 	)
 }
 
-func TestCaptcha_RedisV89_Over_Quota(t *testing.T) {
+func TestCaptcha_Over_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -79,7 +79,7 @@ func TestCaptcha_RedisV89_Over_Quota(t *testing.T) {
 }
 
 // TODO: success in redis, but failed in miniredis
-// func TestCaptcha_RedisV89_Onetime_Timeout(t *testing.T) {
+// func TestCaptcha_Onetime_Timeout(t *testing.T) {
 // 	mr, err := miniredis.Run()
 // 	assert.NoError(t, err)
 

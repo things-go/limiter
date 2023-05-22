@@ -5,7 +5,7 @@ import (
 	"sync"
 )
 
-const unsupportedPeriodLimitKind = "__unsupported_period_limit_kind__"
+var unsupportedPeriodLimitKindDriver = new(UnsupportedPeriodLimitDriver)
 
 // PeriodLimitState period limit state.
 type PeriodLimitState int
@@ -46,27 +46,21 @@ type PeriodLimitDriver interface {
 }
 
 // PeriodLimitManager manage limit period
-type PeriodLimitManager struct {
+type PeriodLimitManager[T comparable] struct {
 	mu     sync.RWMutex
-	driver map[string]PeriodLimitDriver
+	driver map[T]PeriodLimitDriver
 }
 
 // NewPeriodLimitManager new a instance
-func NewPeriodLimitManager() *PeriodLimitManager {
-	return &PeriodLimitManager{
-		driver: map[string]PeriodLimitDriver{
-			unsupportedPeriodLimitKind: new(UnsupportedPeriodLimitDriver),
-		},
+func NewPeriodLimitManager[T comparable]() *PeriodLimitManager[T] {
+	return &PeriodLimitManager[T]{
+		driver: map[T]PeriodLimitDriver{},
 	}
 }
 
 // NewPeriodLimitManagerWithDriver new a instance with driver
-func NewPeriodLimitManagerWithDriver(drivers map[string]PeriodLimitDriver) *PeriodLimitManager {
-	p := &PeriodLimitManager{
-		driver: map[string]PeriodLimitDriver{
-			unsupportedPeriodLimitKind: new(UnsupportedPeriodLimitDriver),
-		},
-	}
+func NewPeriodLimitManagerWithDriver[T comparable](drivers map[T]PeriodLimitDriver) *PeriodLimitManager[T] {
+	p := NewPeriodLimitManager[T]()
 	for kind, drive := range drivers {
 		p.driver[kind] = drive
 	}
@@ -74,7 +68,7 @@ func NewPeriodLimitManagerWithDriver(drivers map[string]PeriodLimitDriver) *Peri
 }
 
 // Register register a PeriodLimitDriver with kind
-func (p *PeriodLimitManager) Register(kind string, d PeriodLimitDriver) error {
+func (p *PeriodLimitManager[T]) Register(kind T, d PeriodLimitDriver) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	_, ok := p.driver[kind]
@@ -86,14 +80,14 @@ func (p *PeriodLimitManager) Register(kind string, d PeriodLimitDriver) error {
 }
 
 // Acquire driver. if driver not exist. it will return UnsupportedPeriodLimitDriver.
-func (p *PeriodLimitManager) Acquire(kind string) PeriodLimitDriver {
+func (p *PeriodLimitManager[T]) Acquire(kind T) PeriodLimitDriver {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	d, ok := p.driver[kind]
 	if ok {
 		return d
 	}
-	return p.driver[unsupportedPeriodLimitKind]
+	return unsupportedPeriodLimitKindDriver
 }
 
 // UnsupportedPeriodLimitDriver unsupported limit period driver

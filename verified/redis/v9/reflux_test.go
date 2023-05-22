@@ -10,7 +10,7 @@ import (
 	"github.com/things-go/limiter/verified/tests"
 )
 
-func TestReflux_RedisV9_Improve_Cover(t *testing.T) {
+func TestReflux_Improve_Cover(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	defer mr.Close()
@@ -20,7 +20,7 @@ func TestReflux_RedisV9_Improve_Cover(t *testing.T) {
 	)
 }
 
-func TestReflux_RedisV9_RedisUnavailable(t *testing.T) {
+func TestReflux_RedisUnavailable(t *testing.T) {
 	mr, err := miniredis.Run()
 	require.Nil(t, err)
 	addr := mr.Addr()
@@ -31,7 +31,7 @@ func TestReflux_RedisV9_RedisUnavailable(t *testing.T) {
 	)
 }
 
-func TestReflux_RedisV9_One_Time(t *testing.T) {
+func TestReflux_One_Time(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -43,7 +43,7 @@ func TestReflux_RedisV9_One_Time(t *testing.T) {
 	)
 }
 
-func TestReflux_RedisV9_In_Quota(t *testing.T) {
+func TestReflux_In_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -55,7 +55,7 @@ func TestReflux_RedisV9_In_Quota(t *testing.T) {
 	)
 }
 
-func TestReflux_RedisV9_Over_Quota(t *testing.T) {
+func TestReflux_Over_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
 
@@ -68,7 +68,7 @@ func TestReflux_RedisV9_Over_Quota(t *testing.T) {
 }
 
 // TODO: success in redis, but failed in miniredis
-// func TestReflux_RedisV9_OneTime_Timeout(t *testing.T) {
+// func TestReflux_OneTime_Timeout(t *testing.T) {
 // 	mr, err := miniredis.Run()
 // 	assert.NoError(t, err)
 

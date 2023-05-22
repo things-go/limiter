@@ -11,6 +11,7 @@ import (
 )
 
 var _ limit.PeriodFailureStorage = (*PeriodFailureStore)(nil)
+var _ limit.PeriodFailureLimitDriver = (*limit.PeriodFailureLimit[*PeriodFailureStore])(nil)
 
 // A PeriodFailureStore is used to limit requests when failure during a period of time.
 type PeriodFailureStore struct {

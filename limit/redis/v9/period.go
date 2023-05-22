@@ -11,6 +11,7 @@ import (
 )
 
 var _ limit.PeriodStorage = (*PeriodStore)(nil)
+var _ limit.PeriodLimitDriver = (*limit.PeriodLimit[*PeriodStore])(nil)
 
 // A PeriodStore is used to limit requests during a period of time.
 type PeriodStore struct {

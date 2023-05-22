@@ -1,4 +1,4 @@
-package v9
+package limit_test
 
 import (
 	"testing"
@@ -7,6 +7,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 
+	redisV9 "github.com/things-go/limiter/limit/redis/v9"
 	"github.com/things-go/limiter/limit/tests"
 )
 
@@ -15,7 +16,7 @@ func TestPeriodFailureLimit_Check(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer mr.Close()
-	tests.TestPeriodFailureLimit_Check(t, NewPeriodFailureStore(
+	tests.TestPeriodFailureLimit_Check(t, redisV9.NewPeriodFailureStore(
 		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 	))
 }
@@ -25,7 +26,7 @@ func TestPeriodFailureLimit_CheckWithAlign(t *testing.T) {
 	assert.Nil(t, err)
 
 	defer mr.Close()
-	tests.TestPeriodFailureLimit_CheckWithAlign(t, NewPeriodFailureStore(
+	tests.TestPeriodFailureLimit_CheckWithAlign(t, redisV9.NewPeriodFailureStore(
 		redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 	))
 }
@@ -38,7 +39,7 @@ func TestPeriodFailureLimit_RedisUnavailable(t *testing.T) {
 
 	tests.TestPeriodFailureLimit_RedisUnavailable(
 		t,
-		NewPeriodFailureStore(
+		redisV9.NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: addr}),
 		),
 	)
@@ -52,7 +53,7 @@ func TestPeriodFailureLimit_Check_In_Limit_Failure_Time_Then_Success(t *testing.
 
 	tests.TestPeriodFailureLimit_Check_In_Limit_Failure_Time_Then_Success(
 		t,
-		NewPeriodFailureStore(
+		redisV9.NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -66,7 +67,7 @@ func TestPeriodFailureLimit_Check_Over_Limit_Failure_Time_Then_Success_Always_Ov
 
 	tests.TestPeriodFailureLimit_Check_Over_Limit_Failure_Time_Then_Success_Always_OverFailureTimeError(
 		t,
-		NewPeriodFailureStore(
+		redisV9.NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -79,7 +80,7 @@ func TestPeriodFailureLimit_SetQuotaFull(t *testing.T) {
 
 	tests.TestPeriodFailureLimit_SetQuotaFull(
 		t,
-		NewPeriodFailureStore(
+		redisV9.NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
@@ -92,7 +93,7 @@ func TestPeriodFailureLimit_Del(t *testing.T) {
 
 	tests.TestPeriodFailureLimit_Del(
 		t,
-		NewPeriodFailureStore(
+		redisV9.NewPeriodFailureStore(
 			redis.NewClient(&redis.Options{Addr: mr.Addr()}),
 		),
 	)
