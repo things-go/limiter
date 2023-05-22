@@ -4,6 +4,7 @@ import (
 	"time"
 )
 
+// OptionSetter option setter
 type OptionSetter interface {
 	setKeyPrefix(k string)
 	setKeyExpires(expires time.Duration)
@@ -99,7 +100,7 @@ func WithResendIntervalSecond(sec int) CodeParamOption {
 	}
 }
 
-func takeCodeParamOption[P LimitVerifiedProvider, S Storage](v *LimitVerified[P, S], c *CodeParam, opts ...CodeParamOption) {
+func (v *LimitVerified[P, S]) takeCodeParamOption(c *CodeParam, opts ...CodeParamOption) {
 	if c.Kind == "" {
 		c.Kind = DefaultKind
 	}

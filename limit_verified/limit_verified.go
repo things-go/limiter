@@ -68,7 +68,7 @@ func (v *LimitVerified[P, S]) Name() string { return v.p.Name() }
 
 // SendCode send code and store.
 func (v *LimitVerified[P, S]) SendCode(ctx context.Context, c CodeParam, opts ...CodeParamOption) error {
-	takeCodeParamOption(v, &c, opts...)
+	v.takeCodeParamOption(&c, opts...)
 
 	nowSecond := strconv.FormatInt(time.Now().Unix(), 10)
 	err := v.store.Store(ctx, &StoreArgs{
@@ -105,7 +105,7 @@ func (v *LimitVerified[P, S]) SendCode(ctx context.Context, c CodeParam, opts ..
 
 // VerifyCode verify code from cache.
 func (v *LimitVerified[P, S]) VerifyCode(ctx context.Context, c CodeParam) error {
-	takeCodeParamOption(v, &c)
+	v.takeCodeParamOption(&c)
 	return v.store.Verify(ctx, &VerifyArgs{
 		KeyPrefix: v.keyPrefix,
 		Kind:      c.Kind,
@@ -144,23 +144,18 @@ func (v *LimitVerified[P, S]) setKeyPrefix(k string) {
 func (v *LimitVerified[P, S]) setKeyExpires(expires time.Duration) {
 	v.keyExpires = expires
 }
-
 func (v *LimitVerified[P, S]) setMaxSendPerDay(cnt int) {
 	v.maxSendPerDay = cnt
 }
-
 func (v *LimitVerified[P, S]) setCodeMaxSendPerDay(cnt int) {
 	v.codeMaxSendPerDay = cnt
 }
-
 func (v *LimitVerified[P, S]) setCodeMaxErrorQuota(cnt int) {
 	v.codeMaxErrorQuota = cnt
 }
-
 func (v *LimitVerified[P, S]) setCodeAvailWindowSecond(sec int) {
 	v.codeAvailWindowSecond = sec
 }
-
 func (v *LimitVerified[P, S]) setCodeResendIntervalSecond(sec int) {
 	v.codeResendIntervalSecond = sec
 }
