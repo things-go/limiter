@@ -16,6 +16,7 @@ func TestReflux_Improve_Cover(t *testing.T) {
 	defer mr.Close()
 	tests.GenericTestReflux_Improve_Cover(
 		t,
+		mr,
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -27,6 +28,7 @@ func TestReflux_RedisUnavailable(t *testing.T) {
 	mr.Close()
 	tests.GenericTestReflux_RedisUnavailable(
 		t,
+		mr,
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
@@ -34,11 +36,11 @@ func TestReflux_RedisUnavailable(t *testing.T) {
 func TestReflux_One_Time(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestReflux_One_Time(
 		t,
+		mr,
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -46,11 +48,11 @@ func TestReflux_One_Time(t *testing.T) {
 func TestReflux_In_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestReflux_In_Quota(
 		t,
+		mr,
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -58,25 +60,23 @@ func TestReflux_In_Quota(t *testing.T) {
 func TestReflux_Over_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestReflux_Over_Quota(
 		t,
+		mr,
 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
-// TODO: success in redis, but failed in miniredis
-// func TestReflux_OneTime_Timeout(t *testing.T) {
-// 	mr, err := miniredis.Run()
-// 	assert.NoError(t, err)
+func TestReflux_OneTime_Timeout(t *testing.T) {
+	mr, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer mr.Close()
 
-// 	defer mr.Close()
-
-// 	tests.GenericTestReflux_OneTime_Timeout(
-// 		t,
-// 		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-// 		// NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 4})),
-// 	)
-// }
+	tests.GenericTestReflux_OneTime_Timeout(
+		t,
+		mr,
+		NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+	)
+}

@@ -37,7 +37,7 @@ func (t TestErrProvider) SendCode(c limit_verified.CodeParam) error {
 	return errors.New("发送失败")
 }
 
-func GenericTestName[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestName[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -45,7 +45,7 @@ func GenericTestName[S limit_verified.Storage](t *testing.T, store S) {
 	require.Equal(t, "test_provider", l.Name())
 }
 
-func GenericTestSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -55,7 +55,7 @@ func GenericTestSendCode_RedisUnavailable[S limit_verified.Storage](t *testing.T
 	assert.NotNil(t, err)
 }
 
-func GenericTestSendCode_Success[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Success[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -70,26 +70,18 @@ func GenericTestSendCode_Success[S limit_verified.Storage](t *testing.T, store S
 	require.NoError(t, err)
 }
 
-func GenericTestSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestSendCode_Err_Failure[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestErrProvider),
 		store,
 		limit_verified.WithKeyPrefix("verification:err"),
 		limit_verified.WithKeyExpires(time.Hour),
 	)
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Error(t, err)
 }
 
-func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
@@ -98,7 +90,7 @@ func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, s
 		limit_verified.WithCodeResendIntervalSecond(1),
 	)
 
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.NoError(t, err)
 
 	time.Sleep(time.Second + time.Millisecond*10)
@@ -106,13 +98,9 @@ func GenericTestSendCode_MaxSendPerDay[S limit_verified.Storage](t *testing.T, s
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
-func GenericTestSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	var success uint32
 	var failed uint32
-
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
 
 	l := limit_verified.NewLimitVerified(new(TestProvider),
 		store,
@@ -140,29 +128,21 @@ func GenericTestSendCode_Concurrency_MaxSendPerDay[S limit_verified.Storage](t *
 	require.Equal(t, uint32(14), failed)
 }
 
-func GenericTestSendCode_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestSendCode_ResendTooFrequently[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 	)
 
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
 	require.NoError(t, err)
 	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithResendIntervalSecond(1))
 	require.ErrorIs(t, err, limit_verified.ErrResendTooFrequently)
 }
 
-func GenericTestSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	var success uint32
 	var failed uint32
-
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
 
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
@@ -191,65 +171,48 @@ func GenericTestSendCode_Concurrency_ResendTooFrequently[S limit_verified.Storag
 	require.Equal(t, uint32(14), failed)
 }
 
-func GenericTestVerifyCode_Success[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestVerifyCode_Success[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 	)
 
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Nil(t, err)
 
 	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	assert.NoError(t, err)
 }
 
-func GenericTestVerifyCode_CodeRequired[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestVerifyCode_CodeRequired[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 	)
 
+	err := l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
+}
+
+func GenericTestVerifyCode_CodeExpired[S limit_verified.Storage](t *testing.T, mr *miniredis.Miniredis, store S) {
+	l := limit_verified.NewLimitVerified(
+		new(TestProvider),
+		store,
+	)
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithAvailWindowSecond(1))
+	require.Nil(t, err)
+
+	mr.FastForward(time.Second * 3) // time.Sleep(time.Second * 3)
 	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
 }
 
-// TODO: mini redis 测试失败, 但redis是成功的
-func GenericTestVerifyCode_CodeExpired[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTestVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 	)
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithAvailWindowSecond(1))
-	require.Nil(t, err)
-
-	time.Sleep(time.Second * 3)
-	err = l.VerifyCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
-	assert.ErrorIs(t, err, limit_verified.ErrCodeRequiredOrExpired)
-}
-
-func GenericTestVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
-	l := limit_verified.NewLimitVerified(
-		new(TestProvider),
-		store,
-	)
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithMaxErrorQuota(6))
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code}, limit_verified.WithMaxErrorQuota(6))
 	require.Nil(t, err)
 
 	for i := 0; i < 6; i++ {
@@ -260,13 +223,9 @@ func GenericTestVerifyCode_CodeMaxError[S limit_verified.Storage](t *testing.T, 
 	assert.ErrorIs(t, err, limit_verified.ErrCodeMaxErrorQuota)
 }
 
-func GenericTestVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t *testing.T, store S) {
+func GenericTestVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	var failedMaxError uint32
 	var failedVerify uint32
-
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
 
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
@@ -275,7 +234,7 @@ func GenericTestVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t 
 		limit_verified.WithCodeAvailWindowSecond(180),
 	)
 
-	err = l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
+	err := l.SendCode(context.Background(), limit_verified.CodeParam{Target: target, Code: code})
 	require.Nil(t, err)
 
 	wg := &sync.WaitGroup{}
@@ -300,34 +259,26 @@ func GenericTestVerifyCode_Concurrency_CodeMaxError[S limit_verified.Storage](t 
 	require.Equal(t, uint32(12), failedMaxError)
 }
 
-func GenericTest_INCR_MaxSendPerDay[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTest_INCR_MaxSendPerDay[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 		limit_verified.WithMaxSendPerDay(10),
 	)
 	for i := 0; i < 10; i++ {
-		err = l.Incr(context.Background(), target)
+		err := l.Incr(context.Background(), target)
 		require.Nil(t, err)
 	}
-	err = l.Incr(context.Background(), target)
+	err := l.Incr(context.Background(), target)
 	require.ErrorIs(t, err, limit_verified.ErrMaxSendPerDay)
 }
 
-func GenericTest_INCR_DECR[S limit_verified.Storage](t *testing.T, store S) {
-	mr, err := miniredis.Run()
-	require.Nil(t, err)
-	defer mr.Close()
-
+func GenericTest_INCR_DECR[S limit_verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := limit_verified.NewLimitVerified(
 		new(TestProvider),
 		store,
 	)
-	err = l.Incr(context.Background(), target)
+	err := l.Incr(context.Background(), target)
 	require.Nil(t, err)
 
 	err = l.Decr(context.Background(), target)

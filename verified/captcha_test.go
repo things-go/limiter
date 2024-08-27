@@ -17,6 +17,7 @@ func TestCaptcha_Improve_Cover(t *testing.T) {
 	defer mr.Close()
 	tests.GenericTestCaptcha_Improve_Cover(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -28,6 +29,7 @@ func TestCaptcha_Unsupported_Driver(t *testing.T) {
 	mr.Close()
 	tests.GenericTestCaptcha_Unsupported_Driver(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
@@ -39,6 +41,7 @@ func TestCaptcha_RedisUnavailable(t *testing.T) {
 	mr.Close()
 	tests.GenericTestCaptcha_RedisUnavailable(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: addr})),
 	)
 }
@@ -46,11 +49,11 @@ func TestCaptcha_RedisUnavailable(t *testing.T) {
 func TestCaptcha_OneTime(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestCaptcha_OneTime(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -58,11 +61,11 @@ func TestCaptcha_OneTime(t *testing.T) {
 func TestCaptcha_In_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestCaptcha_In_Quota(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
@@ -70,25 +73,23 @@ func TestCaptcha_In_Quota(t *testing.T) {
 func TestCaptcha_Over_Quota(t *testing.T) {
 	mr, err := miniredis.Run()
 	assert.NoError(t, err)
-
 	defer mr.Close()
 
 	tests.GenericTestCaptcha_Over_Quota(
 		t,
+		mr,
 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
 	)
 }
 
-// // TODO: success in redis, but failed in miniredis
-// func TestCaptcha_RedisV9_Onetime_Timeout(t *testing.T) {
-// 	mr, err := miniredis.Run()
-// 	assert.NoError(t, err)
+func TestCaptcha_RedisV9_Onetime_Timeout(t *testing.T) {
+	mr, err := miniredis.Run()
+	assert.NoError(t, err)
+	defer mr.Close()
 
-// 	defer mr.Close()
-
-// 	tests.GenericTestCaptcha_Onetime_Timeout(
-// 		t,
-// 		// redisV8.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
-// 		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "123456", DB: 0})),
-// 	)
-// }
+	tests.GenericTestCaptcha_Onetime_Timeout(
+		t,
+		mr,
+		redisV9.NewRedisStore(redis.NewClient(&redis.Options{Addr: mr.Addr()})),
+	)
+}

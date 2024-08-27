@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -67,7 +68,7 @@ func (t TestVerifiedCaptchaDriver) GenerateQuestionAnswer() (*verified.QuestionA
 	}, nil
 }
 
-func GenericTestCaptcha_Improve_Cover[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_Improve_Cover[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -75,7 +76,7 @@ func GenericTestCaptcha_Improve_Cover[S verified.Storage](t *testing.T, store S)
 	l.Name(defaultKind)
 }
 
-func GenericTestCaptcha_Unsupported_Driver[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_Unsupported_Driver[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -85,7 +86,7 @@ func GenericTestCaptcha_Unsupported_Driver[S verified.Storage](t *testing.T, sto
 	assert.Error(t, err)
 }
 
-func GenericTestCaptcha_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_RedisUnavailable[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -94,7 +95,7 @@ func GenericTestCaptcha_RedisUnavailable[S verified.Storage](t *testing.T, store
 	assert.Error(t, err)
 }
 
-func GenericTestCaptcha_OneTime[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_OneTime[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -112,7 +113,7 @@ func GenericTestCaptcha_OneTime[S verified.Storage](t *testing.T, store S) {
 	require.False(t, b)
 }
 
-func GenericTestCaptcha_In_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_In_Quota[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -134,7 +135,7 @@ func GenericTestCaptcha_In_Quota[S verified.Storage](t *testing.T, store S) {
 	require.True(t, b)
 }
 
-func GenericTestCaptcha_Over_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_Over_Quota[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -157,8 +158,7 @@ func GenericTestCaptcha_Over_Quota[S verified.Storage](t *testing.T, store S) {
 	require.False(t, b)
 }
 
-// TODO: success in redis, but failed in miniredis
-func GenericTestCaptcha_Onetime_Timeout[S verified.Storage](t *testing.T, store S) {
+func GenericTestCaptcha_Onetime_Timeout[S verified.Storage](t *testing.T, mr *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedCaptcha(
 		new(TestVerifiedCaptchaProvider),
 		store,
@@ -166,7 +166,7 @@ func GenericTestCaptcha_Onetime_Timeout[S verified.Storage](t *testing.T, store 
 	id, _, err := l.Generate(context.Background(), defaultKind, verified.WithGenerateKeyExpires(time.Second*1))
 	assert.NoError(t, err)
 
-	time.Sleep(time.Second * 2)
+	mr.FastForward(time.Second * 2) // time.Sleep(time.Second * 2)
 
 	b := l.Verify(context.Background(), defaultKind, id, "2")
 	require.False(t, b)

@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alicebob/miniredis/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -21,7 +22,7 @@ func (t TestVerifiedRefluxProvider) GenerateUniqueId() string {
 	return randString(6)
 }
 
-func GenericTestReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_Improve_Cover[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -29,7 +30,7 @@ func GenericTestReflux_Improve_Cover[S verified.Storage](t *testing.T, store S) 
 	l.Name()
 }
 
-func GenericTestReflux_RedisUnavailable[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_RedisUnavailable[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -40,7 +41,7 @@ func GenericTestReflux_RedisUnavailable[S verified.Storage](t *testing.T, store 
 	assert.Error(t, err)
 }
 
-func GenericTestReflux_One_Time[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_One_Time[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -60,7 +61,7 @@ func GenericTestReflux_One_Time[S verified.Storage](t *testing.T, store S) {
 	require.False(t, b)
 }
 
-func GenericTestReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_In_Quota[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -83,7 +84,7 @@ func GenericTestReflux_In_Quota[S verified.Storage](t *testing.T, store S) {
 	require.True(t, b)
 }
 
-func GenericTestReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_Over_Quota[S verified.Storage](t *testing.T, _ *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -109,8 +110,7 @@ func GenericTestReflux_Over_Quota[S verified.Storage](t *testing.T, store S) {
 	require.False(t, b)
 }
 
-// TODO: success in redis, but failed in miniredis
-func GenericTestReflux_OneTime_Timeout[S verified.Storage](t *testing.T, store S) {
+func GenericTestReflux_OneTime_Timeout[S verified.Storage](t *testing.T, mr *miniredis.Miniredis, store S) {
 	l := verified.NewVerifiedReflux(
 		new(TestVerifiedRefluxProvider),
 		store,
@@ -119,7 +119,7 @@ func GenericTestReflux_OneTime_Timeout[S verified.Storage](t *testing.T, store S
 	value, err := l.Generate(context.Background(), defaultKind, randKey, verified.WithGenerateKeyExpires(time.Second*1))
 	assert.NoError(t, err)
 
-	time.Sleep(time.Second * 2)
+	mr.FastForward(time.Second) // time.Sleep(time.Second * 2)
 
 	b := l.Verify(context.Background(), defaultKind, randKey, value)
 	require.False(t, b)
