@@ -3,7 +3,7 @@ module github.com/things-go/limiter
 go 1.21
 
 require (
-	github.com/alicebob/miniredis/v2 v2.33.0
+	github.com/alicebob/miniredis/v2 v2.34.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/redis/go-redis/v9 v9.7.0
 	github.com/stretchr/testify v1.10.0
