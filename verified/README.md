@@ -14,7 +14,6 @@ verified 有两种方式验证方式:
 - 可多次验证(成功或失败超过最大错误限制次数则失效)
   > redis 存储格式:
   > captcha: `keyPrefix:{kind}:{id}` -----> `{ value -- answer, quota -- quota }`  
-  > reflux:  `keyPrefix:{kind}:{key}` -----> `{ value -- unique, quota -- quota }`   
+  > reflux:  `keyPrefix:{kind}:{key}` -----> `{ value -- unique, quota -- quota }`
   >   value: 验证值  
   >   quota: 最大错误限制次数  
-
