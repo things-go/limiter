@@ -11,7 +11,7 @@ import (
 	"github.com/things-go/limiter/limit"
 )
 
-var internalErr = errors.New("internal error")
+var errInternal = errors.New("internal error")
 
 func TestPeriodFailureLimit_Check[S limit.PeriodFailureStorage](t *testing.T, store S) {
 	TestPeriodFailureLimit(
@@ -49,9 +49,9 @@ func TestPeriodFailureLimit[S limit.PeriodFailureStorage](t *testing.T, store S,
 	)
 	var inLimitCnt, overFailureTimeCnt int
 	for i := 0; i < total; i++ {
-		sts, err := l.CheckErr(context.Background(), "first", internalErr)
+		sts, err := l.CheckErr(context.Background(), "first", errInternal)
 		assert.NoError(t, err)
-		switch sts {
+		switch sts { // nolint: exhaustive
 		case limit.PeriodFailureLimitStsInQuota:
 			inLimitCnt++
 		case limit.PeriodFailureLimitStsOverQuota:
@@ -74,9 +74,9 @@ func TestPeriodFailureLimit_Check_In_Limit_Failure_Time_Then_Success[S limit.Per
 	)
 	var inLimitCnt, overFailureTimeCnt int
 	for i := 0; i < quota-1; i++ {
-		sts, err := l.CheckErr(context.Background(), "first", internalErr)
+		sts, err := l.CheckErr(context.Background(), "first", errInternal)
 		assert.NoError(t, err)
-		switch sts {
+		switch sts { // nolint: exhaustive
 		case limit.PeriodFailureLimitStsInQuota:
 			inLimitCnt++
 		case limit.PeriodFailureLimitStsOverQuota:
@@ -105,9 +105,9 @@ func TestPeriodFailureLimit_Check_Over_Limit_Failure_Time_Then_Success_Always_Ov
 	)
 	var inLimitCnt, overFailureTimeCnt int
 	for i := 0; i < quota+1; i++ {
-		sts, err := l.CheckErr(context.Background(), "first", internalErr)
+		sts, err := l.CheckErr(context.Background(), "first", errInternal)
 		assert.NoError(t, err)
-		switch sts {
+		switch sts { // nolint: exhaustive
 		case limit.PeriodFailureLimitStsInQuota:
 			inLimitCnt++
 		case limit.PeriodFailureLimitStsOverQuota:
@@ -175,7 +175,7 @@ func TestPeriodFailureLimit_Del[S limit.PeriodFailureStorage](t *testing.T, stor
 	assert.Equal(t, runValue.Count, int64(quota))
 	assert.Equal(t, runValue.TTL, seconds)
 
-	sts, err := l.CheckErr(context.Background(), "first", internalErr)
+	sts, err := l.CheckErr(context.Background(), "first", errInternal)
 	assert.NoError(t, err)
 	assert.Equal(t, limit.PeriodFailureLimitStsOverQuota, sts)
 	assert.True(t, sts.IsOverQuota())
@@ -183,7 +183,7 @@ func TestPeriodFailureLimit_Del[S limit.PeriodFailureStorage](t *testing.T, stor
 	err = l.Del(context.Background(), "first")
 	assert.Nil(t, err)
 
-	sts, err = l.CheckErr(context.Background(), "first", internalErr)
+	sts, err = l.CheckErr(context.Background(), "first", errInternal)
 	assert.NoError(t, err)
 	assert.Equal(t, limit.PeriodFailureLimitStsInQuota, sts)
 	assert.True(t, sts.IsWithinQuota())
