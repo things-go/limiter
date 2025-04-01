@@ -9,9 +9,9 @@
 
 ## Features
 
-- [limit](./limit/README.md)
-- [limit_verified](./limit_verified/README.md)
-- [verified](./verified/README.md)
+- [limit](./limit/README.md) period limit or period failure limit
+- [limit_verified](./limit_verified/README.md) code verified
+- [verified](./verified/README.md) captcha or reflux verified
 
 ## Usage
 
